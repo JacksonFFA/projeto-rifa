@@ -100,7 +100,6 @@ def registrar():
         nome = nome.strip()
         cursor = conn.cursor()
 
-        # Verifica existência
         cursor.execute(
             "SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)",
             (nome,)
@@ -108,14 +107,11 @@ def registrar():
         if cursor.fetchone():
             return jsonify({"mensagem": "Este nome já está em uso. Escolha outro.", "success": False}), 409
 
-        # Gera próximo Id
         cursor.execute("SELECT ISNULL(MAX(Id), 0) + 1 FROM Participantes")
         next_id = cursor.fetchone()[0]
 
-        # Gera e decodifica o hash
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        # Insere com Id explícito
         cursor.execute(
             "INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
             (next_id, nome, senha_hash)
@@ -126,7 +122,7 @@ def registrar():
 
     except Exception as e:
         print("❌ Erro no registrar:", e)
-        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500)
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -165,12 +161,10 @@ def pagina_login():
 def pagina_register():
     return send_from_directory('static', 'register.html')
 
-# ✅ NOVA ROTA: Página HTML para consulta dos números
 @app.route('/meus-numeros')
 def pagina_meus_numeros():
     return send_from_directory('static', 'meus-numeros.html')
 
-# ✅ NOVA ROTA: Retorna números de um participante
 @app.route('/meus-numeros/<nome_participante>')
 def ver_numeros_participante(nome_participante):
     cursor = conn.cursor()
