@@ -114,26 +114,31 @@ def registrar():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    dados = request.get_json()
-    nome = dados.get('nome')
-    senha = dados.get('senha')
+    try:
+        dados = request.get_json()
+        nome = dados.get('nome')
+        senha = dados.get('senha')
 
-    if not nome or not senha:
-        return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
+        if not nome or not senha:
+            return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
-    cursor = conn.cursor()
-    cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = ?", nome)
-    resultado = cursor.fetchone()
+        cursor = conn.cursor()
+        cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = ?", nome)
+        resultado = cursor.fetchone()
 
-    if not resultado:
-        return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
+        if not resultado:
+            return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
-    senha_hash = resultado[0]
+        senha_hash = resultado[0]
 
-    if bcrypt.checkpw(senha.encode('utf-8'), senha_hash.encode('utf-8')):
-        return jsonify({"mensagem": "Login realizado com sucesso!", "success": True, "nome": nome})
-    else:
-        return jsonify({"mensagem": "Senha incorreta.", "success": False}), 401
+        if bcrypt.checkpw(senha.encode('utf-8'), senha_hash.encode('utf-8')):
+            return jsonify({"mensagem": "Login realizado com sucesso!", "success": True, "nome": nome})
+        else:
+            return jsonify({"mensagem": "Senha incorreta.", "success": False}), 401
+
+    except Exception as e:
+        print("❌ Erro no login:", e)
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
 
 @app.route('/login')
 def pagina_login():
