@@ -1,14 +1,18 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-import pyodbc
-
 app = Flask(__name__)
 CORS(app)
 
 # Conexão com SQL Server - Autenticação do Windows
+import pymssql
 import os
 
-conn = pyodbc.connect(os.environ['DATABASE_URL'])
+conn = pymssql.connect(
+    server='servidor-rifa.database.windows.net',
+    user='adminrifa',
+    password='SUA_SENHA',
+    database='rifa-db'
+)
 
 
 @app.route('/')
