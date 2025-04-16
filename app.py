@@ -6,13 +6,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Conexão com SQL Server - Autenticação do Windows
-conn = pyodbc.connect(
-    'DRIVER={ODBC Driver 17 for SQL Server};'
-    'SERVER=servidor-rifa.database.windows.net;'
-    'DATABASE=rifa-db;'
-    'UID=adminrifa;'
-    'PWD=Jk@FFA22'
-)
+import os
+
+conn = pyodbc.connect(os.environ['DATABASE_URL'])
 
 
 @app.route('/')
