@@ -1,19 +1,18 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+import pymssql
+import bcrypt
+
 app = Flask(__name__)
 CORS(app)
 
-# Conexão com SQL Server - Autenticação do Windows
-import pymssql
-
+# Conexão com SQL Server - Azure
 conn = pymssql.connect(
     server='servidor-rifa.database.windows.net',
     user='adminrifa',
     password='Jk@FFA22',
     database='rifa-db'
 )
-
-
 
 @app.route('/')
 def home():
@@ -42,7 +41,6 @@ def listar_numeros():
 
     return jsonify(numeros)
 
-# ✅ Mover esta rota para cima do app.run()
 @app.route('/front')
 def front():
     return send_from_directory('static', 'index.html')
@@ -56,12 +54,11 @@ def comprar_numero():
     if not numero or not nome_participante:
         return jsonify({"mensagem": "Dados incompletos."}), 400
 
-    # Remove espaços extras e coloca em minúsculas para padronizar
-    nome_participante = nome_participante.strip()
 
+    nome_participante = nome_participante.strip()
     cursor = conn.cursor()
 
-    # Buscar o ID do participante de forma case-insensitive
+
     cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", nome_participante)
     resultado = cursor.fetchone()
 
@@ -70,20 +67,20 @@ def comprar_numero():
 
     id_participante = resultado.Id
 
-    # Verificar se o participante já comprou 4 números
+
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = ?", id_participante)
     qtd_numeros = cursor.fetchone()[0]
 
     if qtd_numeros >= 4:
         return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!"}), 403
 
-    # Verificar se o número já foi comprado
+
     cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = ?", numero)
     checar = cursor.fetchone()
     if checar and checar.IdParticipante is not None:
         return jsonify({"mensagem": f"Número {numero} já foi comprado!"}), 400
 
-    # Atualizar o número com o participante
+
     cursor.execute(
         "UPDATE NumerosRifa SET IdParticipante = ?, DataCompra = GETDATE() WHERE Numero = ?",
         id_participante, numero
@@ -93,7 +90,7 @@ def comprar_numero():
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!"})
 
 
-import bcrypt
+
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
@@ -108,17 +105,17 @@ def registrar():
 
     cursor = conn.cursor()
 
-    # Verifica se o nome já foi cadastrado (case-insensitive)
+
     cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", nome)
     resultado = cursor.fetchone()
 
     if resultado:
         return jsonify({"mensagem": "Este nome já está em uso. Escolha outro."}), 409
 
-    # Criptografa a senha
+
     senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt())
 
-    # Insere novo participante no banco
+
     cursor.execute(
         "INSERT INTO Participantes (Nome, SenhaHash) VALUES (?, ?)",
         nome, senha_hash
@@ -127,7 +124,6 @@ def registrar():
 
     return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!"})
 
-
 @app.route('/login', methods=['POST'])
 def login():
     dados = request.get_json()
@@ -135,21 +131,21 @@ def login():
     senha = dados.get('senha')
 
     if not nome or not senha:
-        return jsonify({"mensagem": "Preencha nome e senha."}), 400
+        return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
     cursor = conn.cursor()
     cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = ?", nome)
     resultado = cursor.fetchone()
 
     if not resultado:
-        return jsonify({"mensagem": "Participante não encontrado."}), 404
+        return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
     senha_hash = resultado[0]
 
     if bcrypt.checkpw(senha.encode('utf-8'), senha_hash.encode('utf-8')):
-        return jsonify({"mensagem": f"Login realizado com sucesso!", "nome": nome})
+        return jsonify({"mensagem": "Login realizado com sucesso!", "success": True, "nome": nome})
     else:
-        return jsonify({"mensagem": "Senha incorreta."}), 401
+        return jsonify({"mensagem": "Senha incorreta.", "success": False}), 401
 
 @app.route('/login')
 def pagina_login():
