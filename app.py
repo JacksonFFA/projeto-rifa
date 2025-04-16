@@ -126,7 +126,7 @@ def registrar():
 
     except Exception as e:
         print("❌ Erro no registrar:", e)
-        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500)
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -165,7 +165,27 @@ def pagina_login():
 def pagina_register():
     return send_from_directory('static', 'register.html')
 
+# ✅ NOVA ROTA: Página HTML para consulta dos números
+@app.route('/meus-numeros')
+def pagina_meus_numeros():
+    return send_from_directory('static', 'meus-numeros.html')
 
+# ✅ NOVA ROTA: Retorna números de um participante
+@app.route('/meus-numeros/<nome_participante>')
+def ver_numeros_participante(nome_participante):
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT NR.Numero
+        FROM NumerosRifa NR
+        INNER JOIN Participantes P ON NR.IdParticipante = P.Id
+        WHERE LOWER(P.Nome) = LOWER(%s)
+        ORDER BY NR.Numero
+    """, (nome_participante,))
+    resultados = cursor.fetchall()
+
+    numeros = [row[0] for row in resultados]
+
+    return jsonify({"participante": nome_participante, "numeros": numeros})
 
 if __name__ == '__main__':
     app.run(debug=True)
