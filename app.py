@@ -52,30 +52,38 @@ def comprar_numero():
     nome_participante = dados.get('participante')
 
     if not numero or not nome_participante:
-        return jsonify({"mensagem": "Dados incompletos."}), 400
+        return jsonify({"mensagem": "Dados incompletos.", "success": False}), 400
 
     nome_participante = nome_participante.strip()
     cursor = conn.cursor()
 
-    # Usando %s em vez de ?
-    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome_participante,))
+    cursor.execute(
+        "SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)",
+        (nome_participante,)
+    )
     resultado = cursor.fetchone()
 
     if not resultado:
-        return jsonify({"mensagem": "Participante não encontrado."}), 404
+        return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
     id_participante = resultado[0]
 
-    cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s", (id_participante,))
+    cursor.execute(
+        "SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s",
+        (id_participante,)
+    )
     qtd_numeros = cursor.fetchone()[0]
 
     if qtd_numeros >= 4:
-        return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!"}), 403
+        return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!", "success": False}), 403
 
-    cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = %s", (numero,))
+    cursor.execute(
+        "SELECT IdParticipante FROM NumerosRifa WHERE Numero = %s",
+        (numero,)
+    )
     checar = cursor.fetchone()
     if checar and checar[0] is not None:
-        return jsonify({"mensagem": f"Número {numero} já foi comprado!"}), 400
+        return jsonify({"mensagem": f"Número {numero} já foi comprado!", "success": False}), 400
 
     cursor.execute(
         "UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
@@ -83,35 +91,42 @@ def comprar_numero():
     )
     conn.commit()
 
-    return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!"})
+    return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
-    dados = request.get_json()
-    nome = dados.get('nome')
-    senha = dados.get('senha')
+    try:
+        dados = request.get_json()
+        nome = dados.get('nome')
+        senha = dados.get('senha')
 
-    if not nome or not senha:
-        return jsonify({"mensagem": "Preencha nome e senha."}), 400
+        if not nome or not senha:
+            return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
-    nome = nome.strip()
-    cursor = conn.cursor()
+        nome = nome.strip()
+        cursor = conn.cursor()
 
-    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome,))
-    resultado = cursor.fetchone()
+        cursor.execute(
+            "SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)",
+            (nome,)
+        )
+        if cursor.fetchone():
+            return jsonify({"mensagem": "Este nome já está em uso. Escolha outro.", "success": False}), 409
 
-    if resultado:
-        return jsonify({"mensagem": "Este nome já está em uso. Escolha outro."}), 409
+        # Gera e decodifica o hash
+        senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt())
+        cursor.execute(
+            "INSERT INTO Participantes (Nome, SenhaHash) VALUES (%s, %s)",
+            (nome, senha_hash)
+        )
+        conn.commit()
 
-    cursor.execute(
-        "INSERT INTO Participantes (Nome, SenhaHash) VALUES (%s, %s)",
-        (nome, senha_hash)
-    )
-    conn.commit()
+        return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!", "success": True})
 
-    return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!"})
+    except Exception as e:
+        print("❌ Erro no registrar:", e)
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -124,7 +139,10 @@ def login():
             return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
         cursor = conn.cursor()
-        cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = %s", (nome,))
+        cursor.execute(
+            "SELECT SenhaHash FROM Participantes WHERE Nome = %s",
+            (nome,)
+        )
         resultado = cursor.fetchone()
 
         if not resultado:
