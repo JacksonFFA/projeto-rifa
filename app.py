@@ -54,10 +54,8 @@ def comprar_numero():
     if not numero or not nome_participante:
         return jsonify({"mensagem": "Dados incompletos."}), 400
 
-
     nome_participante = nome_participante.strip()
     cursor = conn.cursor()
-
 
     cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", nome_participante)
     resultado = cursor.fetchone()
@@ -67,19 +65,16 @@ def comprar_numero():
 
     id_participante = resultado.Id
 
-
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = ?", id_participante)
     qtd_numeros = cursor.fetchone()[0]
 
     if qtd_numeros >= 4:
         return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!"}), 403
 
-
     cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = ?", numero)
     checar = cursor.fetchone()
     if checar and checar.IdParticipante is not None:
         return jsonify({"mensagem": f"Número {numero} já foi comprado!"}), 400
-
 
     cursor.execute(
         "UPDATE NumerosRifa SET IdParticipante = ?, DataCompra = GETDATE() WHERE Numero = ?",
@@ -88,9 +83,6 @@ def comprar_numero():
     conn.commit()
 
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!"})
-
-
-
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
@@ -102,9 +94,7 @@ def registrar():
         return jsonify({"mensagem": "Preencha nome e senha."}), 400
 
     nome = nome.strip()
-
     cursor = conn.cursor()
-
 
     cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", nome)
     resultado = cursor.fetchone()
@@ -112,9 +102,7 @@ def registrar():
     if resultado:
         return jsonify({"mensagem": "Este nome já está em uso. Escolha outro."}), 409
 
-
     senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt())
-
 
     cursor.execute(
         "INSERT INTO Participantes (Nome, SenhaHash) VALUES (?, ?)",
