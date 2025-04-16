@@ -10,7 +10,7 @@ import os
 conn = pymssql.connect(
     server='servidor-rifa.database.windows.net',
     user='adminrifa',
-    password='SUA_SENHA',
+    password='Jk@FFA22',
     database='rifa-db'
 )
 
