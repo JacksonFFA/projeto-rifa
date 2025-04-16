@@ -5,7 +5,6 @@ CORS(app)
 
 # Conexão com SQL Server - Autenticação do Windows
 import pymssql
-import os
 
 conn = pymssql.connect(
     server='servidor-rifa.database.windows.net',
@@ -13,6 +12,7 @@ conn = pymssql.connect(
     password='Jk@FFA22',
     database='rifa-db'
 )
+
 
 
 @app.route('/')
