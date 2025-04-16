@@ -3,7 +3,7 @@ from flask_cors import CORS
 import pymssql
 import bcrypt
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 CORS(app)
 
 # Conexão com SQL Server - Azure
@@ -33,10 +33,10 @@ def listar_numeros():
     resultados = cursor.fetchall()
 
     numeros = []
-    for row in resultados:
+    for numero, participante in resultados:
         numeros.append({
-            "numero": row.Numero,
-            "participante": row.NomeParticipante
+            "numero": numero,
+            "participante": participante
         })
 
     return jsonify(numeros)
@@ -57,28 +57,29 @@ def comprar_numero():
     nome_participante = nome_participante.strip()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", nome_participante)
+    # Usando %s em vez de ?
+    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome_participante,))
     resultado = cursor.fetchone()
 
     if not resultado:
         return jsonify({"mensagem": "Participante não encontrado."}), 404
 
-    id_participante = resultado.Id
+    id_participante = resultado[0]
 
-    cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = ?", id_participante)
+    cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s", (id_participante,))
     qtd_numeros = cursor.fetchone()[0]
 
     if qtd_numeros >= 4:
         return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!"}), 403
 
-    cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = ?", numero)
+    cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = %s", (numero,))
     checar = cursor.fetchone()
-    if checar and checar.IdParticipante is not None:
+    if checar and checar[0] is not None:
         return jsonify({"mensagem": f"Número {numero} já foi comprado!"}), 400
 
     cursor.execute(
-        "UPDATE NumerosRifa SET IdParticipante = ?, DataCompra = GETDATE() WHERE Numero = ?",
-        id_participante, numero
+        "UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
+        (id_participante, numero)
     )
     conn.commit()
 
@@ -96,7 +97,7 @@ def registrar():
     nome = nome.strip()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", nome)
+    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome,))
     resultado = cursor.fetchone()
 
     if resultado:
@@ -105,8 +106,8 @@ def registrar():
     senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt())
 
     cursor.execute(
-        "INSERT INTO Participantes (Nome, SenhaHash) VALUES (?, ?)",
-        nome, senha_hash
+        "INSERT INTO Participantes (Nome, SenhaHash) VALUES (%s, %s)",
+        (nome, senha_hash)
     )
     conn.commit()
 
@@ -149,9 +150,7 @@ def pagina_register():
     return send_from_directory('static', 'register.html')
 
 
-# 👇 Isso deve ficar no final
+
 if __name__ == '__main__':
     app.run(debug=True)
-
-
 
