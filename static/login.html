@@ -93,7 +93,7 @@
             const dados = await resposta.json();
             document.getElementById('mensagem').innerText = dados.mensagem;
 
-            if (resposta.ok) {
+            if (resposta.ok && dados.success) {
                 localStorage.setItem('participante', nome);
                 window.location.href = "/front";
             }
