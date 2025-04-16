@@ -74,13 +74,13 @@
         <h1>Login</h1>
         <input type="text" id="nome" placeholder="Nome">
         <input type="password" id="senha" placeholder="Senha">
-        <button onclick="logar()">Entrar</button>
+        <button id="btn-login">Entrar</button>
         <p class="mensagem" id="mensagem"></p>
         <a href="/register">Ainda não tem senha? Cadastre-se</a>
     </div>
 
     <script>
-        async function logar() {
+        document.getElementById("btn-login").addEventListener("click", async () => {
             const nome = document.getElementById('nome').value;
             const senha = document.getElementById('senha').value;
 
@@ -97,7 +97,7 @@
                 localStorage.setItem('participante', nome);
                 window.location.href = "/front";
             }
-        }
+        });
     </script>
 </body>
 </html>
