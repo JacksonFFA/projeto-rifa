@@ -81,28 +81,36 @@
 
     <script>
         alert("✅ JavaScript carregado!");
-
+    
         document.getElementById("btn-login").addEventListener("click", async () => {
             alert("🔔 Botão clicado!");
-
+    
             const nome = document.getElementById('nome').value;
             const senha = document.getElementById('senha').value;
-
-            const resposta = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, senha })
-            });
-
-            const dados = await resposta.json();
-            document.getElementById('mensagem').innerText = dados.mensagem;
-
-            if (resposta.ok && dados.success) {
-                localStorage.setItem('participante', nome);
-                window.location.href = "/front";
+    
+            try {
+                const resposta = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, senha })
+                });
+    
+                const dados = await resposta.json();
+                console.log("🔎 Resposta da API:", dados); // ADICIONADO AQUI
+    
+                document.getElementById('mensagem').innerText = dados.mensagem || "Erro ao fazer login";
+    
+                if (resposta.ok && dados.success) {
+                    localStorage.setItem('participante', nome);
+                    window.location.href = "/front";
+                }
+            } catch (erro) {
+                console.error("❌ Erro ao tentar logar:", erro);
+                document.getElementById('mensagem').innerText = "Erro de conexão com o servidor.";
             }
         });
     </script>
+    
 </body>
 </html>
 
