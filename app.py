@@ -34,10 +34,7 @@ def listar_numeros():
 
     numeros = []
     for numero, participante in resultados:
-        numeros.append({
-            "numero": numero,
-            "participante": participante
-        })
+        numeros.append({"numero": numero, "participante": participante})
 
     return jsonify(numeros)
 
@@ -61,19 +58,17 @@ def comprar_numero():
         "SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)",
         (nome_participante,)
     )
-    resultado = cursor.fetchone()
-
-    if not resultado:
+    row = cursor.fetchone()
+    if not row:
         return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
-    id_participante = resultado[0]
+    id_participante = row[0]
 
     cursor.execute(
         "SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s",
         (id_participante,)
     )
     qtd_numeros = cursor.fetchone()[0]
-
     if qtd_numeros >= 4:
         return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!", "success": False}), 403
 
@@ -90,7 +85,6 @@ def comprar_numero():
         (id_participante, numero)
     )
     conn.commit()
-
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
 @app.route('/registrar', methods=['POST'])
@@ -106,6 +100,7 @@ def registrar():
         nome = nome.strip()
         cursor = conn.cursor()
 
+        # Verifica existência
         cursor.execute(
             "SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)",
             (nome,)
@@ -113,12 +108,17 @@ def registrar():
         if cursor.fetchone():
             return jsonify({"mensagem": "Este nome já está em uso. Escolha outro.", "success": False}), 409
 
+        # Gera próximo Id
+        cursor.execute("SELECT ISNULL(MAX(Id), 0) + 1 FROM Participantes")
+        next_id = cursor.fetchone()[0]
+
         # Gera e decodifica o hash
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
+        # Insere com Id explícito
         cursor.execute(
-            "INSERT INTO Participantes (Nome, SenhaHash) VALUES (%s, %s)",
-            (nome, senha_hash)
+            "INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
+            (next_id, nome, senha_hash)
         )
         conn.commit()
 
@@ -144,12 +144,10 @@ def login():
             (nome,)
         )
         resultado = cursor.fetchone()
-
         if not resultado:
             return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
         senha_hash = resultado[0]
-
         if bcrypt.checkpw(senha.encode('utf-8'), senha_hash.encode('utf-8')):
             return jsonify({"mensagem": "Login realizado com sucesso!", "success": True, "nome": nome})
         else:
@@ -171,4 +169,5 @@ def pagina_register():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
