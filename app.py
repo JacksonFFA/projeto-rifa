@@ -124,7 +124,7 @@ def registrar():
 
     return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!"})
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     dados = request.get_json()
     nome = dados.get('nome')

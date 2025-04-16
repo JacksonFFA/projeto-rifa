@@ -89,7 +89,7 @@
             const senha = document.getElementById('senha').value;
 
             try {
-                const resposta = await fetch('https://projeto-rifa-amigos-do-cantao.onrender.com/login', {
+                const resposta = await fetch('https://projeto-rifa-amigos-do-cantao.onrender.com/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nome, senha })
