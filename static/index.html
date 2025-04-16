@@ -61,42 +61,52 @@
         document.getElementById("participanteLogado").innerText = participante;
 
         async function carregarNumeros() {
-            const resposta = await fetch('http://127.0.0.1:5000/numeros');
-            const dados = await resposta.json();
+            try {
+                const resposta = await fetch('https://projeto-rifa-amigos-do-cantao.onrender.com/numeros');
+                const dados = await resposta.json();
 
-            const container = document.getElementById('container');
-            container.innerHTML = "";
+                const container = document.getElementById('container');
+                container.innerHTML = "";
 
-            dados.forEach(item => {
-                const botao = document.createElement('button');
-                botao.textContent = item.numero;
-                botao.classList.add('numero');
+                dados.forEach(item => {
+                    const botao = document.createElement('button');
+                    botao.textContent = item.numero;
+                    botao.classList.add('numero');
 
-                if (item.participante === "") {
-                    botao.classList.add('disponivel');
-                    botao.onclick = () => selecionarNumero(item.numero);
-                } else {
-                    botao.classList.add('ocupado');
-                    botao.title = `Comprado por: ${item.participante}`;
-                }
+                    if (item.participante === "") {
+                        botao.classList.add('disponivel');
+                        botao.onclick = () => selecionarNumero(item.numero);
+                    } else {
+                        botao.classList.add('ocupado');
+                        botao.title = `Comprado por: ${item.participante}`;
+                    }
 
-                container.appendChild(botao);
-            });
+                    container.appendChild(botao);
+                });
+            } catch (erro) {
+                console.error("Erro ao carregar números:", erro);
+                alert("❌ Erro ao carregar os números da rifa.");
+            }
         }
 
         async function selecionarNumero(numero) {
             const confirmacao = confirm(`Confirmar compra do número ${numero} para ${participante}?`);
             if (!confirmacao) return;
 
-            const resposta = await fetch('http://127.0.0.1:5000/comprar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ numero, participante })
-            });
+            try {
+                const resposta = await fetch('https://projeto-rifa-amigos-do-cantao.onrender.com/comprar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ numero, participante })
+                });
 
-            const resultado = await resposta.json();
-            alert(resultado.mensagem);
-            carregarNumeros(); // atualiza os botões
+                const resultado = await resposta.json();
+                alert(resultado.mensagem);
+                carregarNumeros(); // atualiza os botões
+            } catch (erro) {
+                console.error("Erro ao comprar número:", erro);
+                alert("❌ Não foi possível completar a compra.");
+            }
         }
 
         function logout() {
