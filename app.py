@@ -123,7 +123,7 @@ def login():
             return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
         cursor = conn.cursor()
-        cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = ?", nome)
+        cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = %s", (nome,))
         resultado = cursor.fetchone()
 
         if not resultado:
