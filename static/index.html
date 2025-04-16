@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Rifa Interativa</title>
+    <title>Rifa Amigos do Cantão</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,6 +38,20 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        .busca {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .busca input {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+        }
+        .resultados {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -49,6 +63,12 @@
     </div>
 
     <div id="container"></div>
+
+    <div class="busca">
+        <h3>🔎 Consultar Números</h3>
+        <input type="text" id="campoBusca" placeholder="Digite seu nome...">
+        <div class="resultados" id="resultadoBusca"></div>
+    </div>
 
     <script>
         const participante = localStorage.getItem('participante');
@@ -62,7 +82,7 @@
 
         async function carregarNumeros() {
             try {
-                const resposta = await fetch('https://projeto-rifa-amigos-do-cantao.onrender.com/numeros');
+                const resposta = await fetch('/numeros');
                 const dados = await resposta.json();
 
                 const container = document.getElementById('container');
@@ -85,7 +105,6 @@
                 });
             } catch (erro) {
                 console.error("Erro ao carregar números:", erro);
-                alert("❌ Erro ao carregar os números da rifa.");
             }
         }
 
@@ -93,20 +112,15 @@
             const confirmacao = confirm(`Confirmar compra do número ${numero} para ${participante}?`);
             if (!confirmacao) return;
 
-            try {
-                const resposta = await fetch('https://projeto-rifa-amigos-do-cantao.onrender.com/comprar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ numero, participante })
-                });
+            const resposta = await fetch('/comprar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ numero, participante })
+            });
 
-                const resultado = await resposta.json();
-                alert(resultado.mensagem);
-                carregarNumeros(); // atualiza os botões
-            } catch (erro) {
-                console.error("Erro ao comprar número:", erro);
-                alert("❌ Não foi possível completar a compra.");
-            }
+            const resultado = await resposta.json();
+            alert(resultado.mensagem);
+            carregarNumeros(); // atualiza os botões
         }
 
         function logout() {
@@ -114,7 +128,33 @@
             window.location.href = "/login";
         }
 
-        // inicial
+        // 🔍 Buscar números por nome
+        document.getElementById("campoBusca").addEventListener("input", async function () {
+            const nome = this.value.trim();
+            const resultadoDiv = document.getElementById("resultadoBusca");
+
+            if (nome.length < 3) {
+                resultadoDiv.innerHTML = "";
+                return;
+            }
+
+            try {
+                const resposta = await fetch(`/meus-numeros/${encodeURIComponent(nome)}`);
+                const dados = await resposta.json();
+
+                if (dados.numeros.length > 0) {
+                    resultadoDiv.innerHTML = `
+                        <strong>${dados.participante}</strong> comprou os números:<br>
+                        ${dados.numeros.join(", ")}
+                    `;
+                } else {
+                    resultadoDiv.innerHTML = "Nenhum número encontrado.";
+                }
+            } catch (error) {
+                resultadoDiv.innerHTML = "Erro ao buscar números.";
+            }
+        });
+
         carregarNumeros();
     </script>
 </body>
