@@ -1,105 +1,122 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Cadastro</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      background-color: #f4f4f4;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .box {
-      background-color: white;
-      padding: 40px 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 350px;
-      text-align: center;
-    }
-    h1 {
-      margin-bottom: 25px;
-      font-size: 24px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    .mensagem {
-      color: red;
-      height: 20px;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    a {
-      display: block;
-      margin-top: 20px;
-      font-size: 14px;
-      text-decoration: none;
-      color: #007bff;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Cadastro</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #f0f8ff, #dbefff);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .register-box {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 320px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .mensagem {
+            color: red;
+            margin-top: 10px;
+            height: 20px;
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Cadastro</h1>
-    <input type="text" id="nome" placeholder="Nome">
-    <input type="password" id="senha" placeholder="Senha">
-    <button id="btn-register">Cadastrar</button>
-    <p class="mensagem" id="mensagem"></p>
-    <a href="/login">Já tem uma conta? Fazer login</a>
-  </div>
+    <div class="register-box">
+        <h1>Cadastro</h1>
+        <input type="text" id="nome" placeholder="Seu nome">
+        <input type="password" id="senha" placeholder="Crie uma senha">
+        <button id="btn-register">Cadastrar</button>
+        <p class="mensagem" id="mensagem"></p>
+        <a href="/login">Já tem conta? Faça login</a>
+    </div>
 
-  <script>
-    document.getElementById("btn-register").addEventListener("click", async () => {
-      const nome = document.getElementById('nome').value;
-      const senha = document.getElementById('senha').value;
+    <script>
+        document.getElementById("btn-register").addEventListener("click", async () => {
+            const nome = document.getElementById('nome').value.trim();
+            const senha = document.getElementById('senha').value;
 
-      try {
-        const resposta = await fetch('/registrar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, senha })
-        });
+            if (!nome || !senha) {
+                document.getElementById('mensagem').innerText = "Preencha todos os campos.";
+                return;
+            }
 
-        const dados = await resposta.json();
-        document.getElementById('mensagem').innerText = dados.mensagem;
+            try {
+                const resposta = await fetch('/registrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, senha })
+                });
 
-        if (resposta.ok) {
-            localStorage.setItem('participante', nome);
-            window.location.href = "/front";
-        }
-        } catch (err) {
-        document.getElementById('mensagem').innerText = "Erro de conexão com o servidor.";
-        }
+                const dados = await resposta.json();
+                document.getElementById('mensagem').innerText = dados.mensagem;
+
+                if (resposta.ok && dados.success) {
+                    alert("Cadastro realizado com sucesso!");
+                    localStorage.setItem('participante', nome);
+                    window.location.href = "/front";
+                }
+            } catch (erro) {
+                console.error("Erro:", erro);
+                document.getElementById('mensagem').innerText = "Erro de conexão com o servidor.";
+            }
         });
     </script>
 </body>
