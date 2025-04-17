@@ -136,7 +136,7 @@ def login():
 
     except Exception as e:
         print("❌ Erro no login:", e)
-        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
+    return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
 
 @app.route('/login')
 def pagina_login():
