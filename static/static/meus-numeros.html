@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meus Números - Rifa Amigos do Cantão</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #e0f7fa, #b2ebf2);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 500px;
+      width: 100%;
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      outline: none;
+    }
+
+    .numeros {
+      font-size: 16px;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    .numeros span {
+      background-color: #00bcd4;
+      color: white;
+      padding: 6px 10px;
+      margin: 4px;
+      display: inline-block;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 30px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      select {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Meus Números da Rifa</h1>
+
+    <select id="participanteSelect">
+      <option value="">-- Selecione seu nome --</option>
+    </select>
+
+    <div class="numeros" id="resultado"></div>
+
+    <a href="/front">⬅ Voltar à tela principal</a>
+  </div>
+
+  <script>
+    async function carregarParticipantes() {
+      const resposta = await fetch('/numeros');
+      const dados = await resposta.json();
+
+      const participantes = [...new Set(dados.map(n => n.participante).filter(n => n !== ""))];
+      const select = document.getElementById("participanteSelect");
+
+      participantes.sort().forEach(nome => {
+        const opt = document.createElement("option");
+        opt.value = nome;
+        opt.textContent = nome;
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById("participanteSelect").addEventListener("change", async function () {
+      const nome = this.value;
+      if (!nome) return;
+
+      const resposta = await fetch(`/meus-numeros/${encodeURIComponent(nome)}`);
+      const dados = await resposta.json();
+
+      const resultado = document.getElementById("resultado");
+
+      if (dados.numeros.length > 0) {
+        resultado.innerHTML = `<strong>${dados.participante}</strong> escolheu os números:<br><br>` +
+          dados.numeros.map(n => `<span>${n}</span>`).join("");
+      } else {
+        resultado.innerHTML = "Nenhum número encontrado para este participante.";
+      }
+    });
+
+    carregarParticipantes();
+  </script>
+</body>
+</html>
+
