@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rifa Amigos do Cantão</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -96,8 +97,13 @@
   <script>
     const participante = localStorage.getItem('participante');
     if (!participante) {
-      alert("Você precisa fazer login!");
-      window.location.href = "/login";
+      Swal.fire({
+        icon: 'warning',
+        title: 'Você precisa fazer login!',
+        confirmButtonText: 'OK'
+      }).then(() => {
+        window.location.href = "/login";
+      });
     }
 
     document.getElementById("participanteLogado").innerText = participante;
@@ -131,8 +137,16 @@
     }
 
     async function selecionarNumero(numero) {
-      const confirmacao = confirm(`Confirmar compra do número ${numero} para ${participante}?`);
-      if (!confirmacao) return;
+      const confirmacao = await Swal.fire({
+        title: `Confirmar compra do número ${numero}?`,
+        text: `Participante: ${participante}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, comprar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (!confirmacao.isConfirmed) return;
 
       const resposta = await fetch('/comprar', {
         method: 'POST',
@@ -141,7 +155,12 @@
       });
 
       const resultado = await resposta.json();
-      alert(resultado.mensagem);
+
+      Swal.fire({
+        icon: resultado.success ? 'success' : 'error',
+        title: resultado.mensagem
+      });
+
       carregarNumeros(); // atualiza os botões
     }
 
