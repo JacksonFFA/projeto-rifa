@@ -2,16 +2,21 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import pymssql
 import bcrypt
+import os
+from dotenv import load_dotenv
+
+# Carrega variáveis do .env
+load_dotenv()
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
-# Conexão com SQL Server - Azure
+# Conexão com SQL Server - Azure usando variáveis de ambiente
 conn = pymssql.connect(
-    server='servidor-rifa.database.windows.net',
-    user='adminrifa',
-    password='Jk@FFA22',
-    database='rifa-db'
+    server=os.getenv('DB_SERVER'),
+    user=os.getenv('DB_USER'),
+    password=os.getenv('DB_PASSWORD'),
+    database=os.getenv('DB_NAME')
 )
 
 @app.route('/')
@@ -32,10 +37,7 @@ def listar_numeros():
     cursor.execute(query)
     resultados = cursor.fetchall()
 
-    numeros = []
-    for numero, participante in resultados:
-        numeros.append({"numero": numero, "participante": participante})
-
+    numeros = [{"numero": numero, "participante": participante} for numero, participante in resultados]
     return jsonify(numeros)
 
 @app.route('/front')
