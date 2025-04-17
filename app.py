@@ -4,16 +4,18 @@ import pymssql
 import bcrypt
 import os
 from dotenv import load_dotenv
+from routes.dashboard import dashboard_bp  # ✅ Import do blueprint
 
 # Carrega variáveis do .env
 load_dotenv()
 
+# Cria o app Flask antes de registrar o blueprint
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
-# Importa e registra Blueprint do dashboard
-from routes.dashboard import dashboard_bp
+# ✅ Agora sim pode registrar blueprint
 app.register_blueprint(dashboard_bp)
+
 
 # Conexão com SQL Server - Azure usando variáveis de ambiente
 conn = pymssql.connect(
