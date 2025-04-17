@@ -76,7 +76,7 @@ def comprar_numero():
         return jsonify({"mensagem": f"Número {numero} já foi comprado!", "success": False}), 400
 
     cursor.execute("UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
-                (id_participante, numero))
+        (id_participante, numero))
     conn.commit()
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
@@ -110,7 +110,7 @@ def registrar():
 
     except Exception as e:
         print("❌ Erro no registrar:", e)
-        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500)
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
