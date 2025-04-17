@@ -11,6 +11,10 @@ load_dotenv()
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
+# Importa e registra Blueprint do dashboard
+from routes.dashboard import dashboard_bp
+app.register_blueprint(dashboard_bp)
+
 # Conexão com SQL Server - Azure usando variáveis de ambiente
 conn = pymssql.connect(
     server=os.getenv('DB_SERVER'),
@@ -36,7 +40,6 @@ def listar_numeros():
     """
     cursor.execute(query)
     resultados = cursor.fetchall()
-
     numeros = [{"numero": numero, "participante": participante} for numero, participante in resultados]
     return jsonify(numeros)
 
@@ -56,36 +59,24 @@ def comprar_numero():
     nome_participante = nome_participante.strip()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)",
-        (nome_participante,)
-    )
+    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome_participante,))
     row = cursor.fetchone()
     if not row:
         return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
     id_participante = row[0]
-
-    cursor.execute(
-        "SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s",
-        (id_participante,)
-    )
+    cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s", (id_participante,))
     qtd_numeros = cursor.fetchone()[0]
     if qtd_numeros >= 4:
         return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!", "success": False}), 403
 
-    cursor.execute(
-        "SELECT IdParticipante FROM NumerosRifa WHERE Numero = %s",
-        (numero,)
-    )
+    cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = %s", (numero,))
     checar = cursor.fetchone()
     if checar and checar[0] is not None:
         return jsonify({"mensagem": f"Número {numero} já foi comprado!", "success": False}), 400
 
-    cursor.execute(
-        "UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
-        (id_participante, numero)
-    )
+    cursor.execute("UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
+                (id_participante, numero))
     conn.commit()
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
@@ -102,10 +93,7 @@ def registrar():
         nome = nome.strip()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)",
-            (nome,)
-        )
+        cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome,))
         if cursor.fetchone():
             return jsonify({"mensagem": "Este nome já está em uso. Escolha outro.", "success": False}), 409
 
@@ -114,17 +102,15 @@ def registrar():
 
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        cursor.execute(
-            "INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
-            (next_id, nome, senha_hash)
-        )
+        cursor.execute("INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
+                    (next_id, nome, senha_hash))
         conn.commit()
 
         return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!", "success": True})
 
     except Exception as e:
         print("❌ Erro no registrar:", e)
-        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500)
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -137,10 +123,7 @@ def login():
             return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT SenhaHash FROM Participantes WHERE Nome = %s",
-            (nome,)
-        )
+        cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = %s", (nome,))
         resultado = cursor.fetchone()
         if not resultado:
             return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
@@ -153,7 +136,7 @@ def login():
 
     except Exception as e:
         print("❌ Erro no login:", e)
-        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500)
 
 @app.route('/login')
 def pagina_login():
@@ -180,7 +163,6 @@ def ver_numeros_participante(nome_participante):
     resultados = cursor.fetchall()
 
     numeros = [row[0] for row in resultados]
-
     return jsonify({"participante": nome_participante, "numeros": numeros})
 
 if __name__ == '__main__':
