@@ -5,83 +5,73 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastro - Rifa Amigos do Cantão</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       padding: 0;
-      background-color: #121212;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
       font-family: 'Segoe UI', sans-serif;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
     }
 
     .register-box {
-      background-color: #1e1e1e;
-      padding: 30px 20px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-      text-align: center;
+      background-color: white;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
       width: 100%;
       max-width: 360px;
+      text-align: center;
     }
 
-    h1 {
-      margin-bottom: 20px;
-      font-size: 24px;
-      color: #00d26a;
+    .register-box h1 {
+      margin-bottom: 24px;
+      font-size: 26px;
+      color: #333;
     }
 
-    input {
+    .register-box input {
       width: 100%;
-      padding: 12px;
+      padding: 12px 10px;
       margin: 10px 0;
-      border-radius: 10px;
-      border: none;
-      outline: none;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       font-size: 15px;
-      background-color: #2a2a2a;
-      color: white;
     }
 
-    input::placeholder {
-      color: #aaa;
-    }
-
-    button {
+    .register-box button {
       width: 100%;
       padding: 12px;
-      background: linear-gradient(135deg, #00d26a, #00a8cc);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
+      background-color: #007bff;
       color: white;
-      transition: background 0.3s ease;
-      margin-top: 10px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 16px;
     }
 
-    button:hover {
-      background: linear-gradient(135deg, #00a8cc, #00d26a);
+    .register-box button:hover {
+      background-color: #0056b3;
     }
 
     .mensagem {
-      color: #ff4f4f;
-      margin-top: 10px;
-      min-height: 24px;
+      color: red;
+      margin-top: 12px;
+      height: 20px;
     }
 
     a {
-      display: block;
       margin-top: 18px;
-      font-size: 14px;
-      color: #00aaff;
+      display: block;
+      color: #007bff;
       text-decoration: none;
+      font-size: 14px;
     }
 
     a:hover {
