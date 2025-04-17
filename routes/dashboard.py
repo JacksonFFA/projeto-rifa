@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, render_template
+from flask import Blueprint, jsonify
 import pymssql
 import os
 from dotenv import load_dotenv
@@ -32,14 +32,13 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante IS NULL")
     numeros_disponiveis = cursor.fetchone()[0]
 
-    # Top participantes por quantidade de números comprados
+    # Top 5 participantes por quantidade de números comprados
     cursor.execute('''
-        SELECT P.Nome, COUNT(*) AS Quantidade
+        SELECT TOP 5 P.Nome, COUNT(*) AS Quantidade
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
         GROUP BY P.Nome
         ORDER BY Quantidade DESC
-        LIMIT 5
     ''')
     top_participantes = cursor.fetchall()
 
