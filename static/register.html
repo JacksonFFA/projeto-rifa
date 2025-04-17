@@ -11,7 +11,6 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            margin: 0;
         }
 
         .register-box {
@@ -25,7 +24,6 @@
 
         h1 {
             margin-bottom: 20px;
-            font-size: 24px;
         }
 
         input {
@@ -40,17 +38,16 @@
         button {
             width: 100%;
             padding: 12px;
-            background-color: #007bff;
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s ease;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #218838;
         }
 
         .mensagem {
@@ -74,43 +71,34 @@
 </head>
 <body>
     <div class="register-box">
-        <h1>Criar Conta</h1>
-        <input type="text" id="nome" placeholder="Digite seu nome">
-        <input type="password" id="senha" placeholder="Crie uma senha">
-        <button id="btn-registrar">Cadastrar</button>
+        <h1>Cadastro</h1>
+        <input type="text" id="nome" placeholder="Nome">
+        <input type="password" id="senha" placeholder="Senha">
+        <button onclick="registrar()">Cadastrar</button>
         <p class="mensagem" id="mensagem"></p>
-        <a href="/login">Já tem conta? Faça login</a>
+        <a href="/login">Já tem conta? Entrar</a>
     </div>
 
     <script>
-        document.getElementById("btn-registrar").addEventListener("click", async () => {
+        async function registrar() {
             const nome = document.getElementById('nome').value;
             const senha = document.getElementById('senha').value;
 
-            if (!nome || !senha) {
-                document.getElementById("mensagem").innerText = "Preencha todos os campos.";
-                return;
+            const resposta = await fetch('/registrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, senha })
+            });
+
+            const dados = await resposta.json();
+            document.getElementById('mensagem').innerText = dados.mensagem;
+
+            if (resposta.ok && dados.success) {
+                alert("Cadastro realizado com sucesso!");
+                localStorage.setItem('participante', nome);
+                window.location.href = "/front";
             }
-
-            try {
-                const resposta = await fetch('/registrar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, senha })
-                });
-
-                const dados = await resposta.json();
-                document.getElementById("mensagem").innerText = dados.mensagem;
-
-                if (resposta.ok && dados.success) {
-                    setTimeout(() => {
-                        window.location.href = "/login";
-                    }, 2000);
-                }
-            } catch (error) {
-                document.getElementById("mensagem").innerText = "Erro ao registrar. Tente novamente.";
-            }
-        });
+        }
     </script>
 </body>
 </html>
