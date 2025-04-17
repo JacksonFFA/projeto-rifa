@@ -1,161 +1,191 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Rifa Amigos do Cantão</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            background-color: #f0f0f0;
-        }
-        h1 {
-            text-align: center;
-        }
-        #container {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 10px;
-            max-width: 600px;
-            margin: 20px auto;
-        }
-        .numero {
-            padding: 15px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            color: white;
-        }
-        .disponivel {
-            background-color: green;
-        }
-        .ocupado {
-            background-color: red;
-            cursor: not-allowed;
-        }
-        .topo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .busca {
-            text-align: center;
-            margin-top: 30px;
-        }
-        .busca input {
-            padding: 10px;
-            font-size: 16px;
-            width: 300px;
-        }
-        .resultados {
-            margin-top: 15px;
-            text-align: center;
-            font-size: 16px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rifa Amigos do Cantão</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
+      color: #333;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+      margin-bottom: 10px;
+    }
+    .topo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .topo button {
+      padding: 8px 16px;
+      font-size: 14px;
+      background-color: #dc3545;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
+    #container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .numero {
+      padding: 15px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      color: white;
+      transition: transform 0.2s ease;
+    }
+    .numero:hover {
+      transform: scale(1.05);
+    }
+    .disponivel {
+      background-color: #28a745;
+    }
+    .ocupado {
+      background-color: #dc3545;
+      cursor: not-allowed;
+    }
+    .busca {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .busca input {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .resultados {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    @media screen and (max-width: 500px) {
+      .numero {
+        padding: 10px;
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Rifa Amigos do Cantão</h1>
+  <h1>Rifa Amigos do Cantão</h1>
 
-    <div class="topo">
-        <p>Bem-vindo, <strong><span id="participanteLogado"></span></strong>!</p>
-        <button onclick="logout()">Sair</button>
-    </div>
+  <div class="topo">
+    <p>Bem-vindo, <strong><span id="participanteLogado"></span></strong>!</p>
+    <button onclick="logout()">Sair</button>
+  </div>
 
-    <div id="container"></div>
+  <div id="container"></div>
 
-    <div class="busca">
-        <h3>🔎 Consultar Números</h3>
-        <input type="text" id="campoBusca" placeholder="Digite seu nome...">
-        <div class="resultados" id="resultadoBusca"></div>
-    </div>
+  <div class="busca">
+    <h3>🔎 Consultar Números</h3>
+    <input type="text" id="campoBusca" placeholder="Digite seu nome..." />
+    <div class="resultados" id="resultadoBusca"></div>
+  </div>
 
-    <script>
-        const participante = localStorage.getItem('participante');
+  <script>
+    const participante = localStorage.getItem('participante');
+    if (!participante) {
+      alert("Você precisa fazer login!");
+      window.location.href = "/login";
+    }
 
-        if (!participante) {
-            alert("Você precisa fazer login!");
-            window.location.href = "/login";
-        }
+    document.getElementById("participanteLogado").innerText = participante;
 
-        document.getElementById("participanteLogado").innerText = participante;
+    async function carregarNumeros() {
+      try {
+        const resposta = await fetch('/numeros');
+        const dados = await resposta.json();
 
-        async function carregarNumeros() {
-            try {
-                const resposta = await fetch('/numeros');
-                const dados = await resposta.json();
+        const container = document.getElementById('container');
+        container.innerHTML = "";
 
-                const container = document.getElementById('container');
-                container.innerHTML = "";
+        dados.forEach(item => {
+          const botao = document.createElement('button');
+          botao.textContent = item.numero;
+          botao.classList.add('numero');
 
-                dados.forEach(item => {
-                    const botao = document.createElement('button');
-                    botao.textContent = item.numero;
-                    botao.classList.add('numero');
+          if (item.participante === "") {
+            botao.classList.add('disponivel');
+            botao.onclick = () => selecionarNumero(item.numero);
+          } else {
+            botao.classList.add('ocupado');
+            botao.title = `Comprado por: ${item.participante}`;
+          }
 
-                    if (item.participante === "") {
-                        botao.classList.add('disponivel');
-                        botao.onclick = () => selecionarNumero(item.numero);
-                    } else {
-                        botao.classList.add('ocupado');
-                        botao.title = `Comprado por: ${item.participante}`;
-                    }
-
-                    container.appendChild(botao);
-                });
-            } catch (erro) {
-                console.error("Erro ao carregar números:", erro);
-            }
-        }
-
-        async function selecionarNumero(numero) {
-            const confirmacao = confirm(`Confirmar compra do número ${numero} para ${participante}?`);
-            if (!confirmacao) return;
-
-            const resposta = await fetch('/comprar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ numero, participante })
-            });
-
-            const resultado = await resposta.json();
-            alert(resultado.mensagem);
-            carregarNumeros(); // atualiza os botões
-        }
-
-        function logout() {
-            localStorage.removeItem('participante');
-            window.location.href = "/login";
-        }
-
-        // 🔍 Buscar números por nome
-        document.getElementById("campoBusca").addEventListener("input", async function () {
-            const nome = this.value.trim();
-            const resultadoDiv = document.getElementById("resultadoBusca");
-
-            if (nome.length < 3) {
-                resultadoDiv.innerHTML = "";
-                return;
-            }
-
-            try {
-                const resposta = await fetch(`/meus-numeros/${encodeURIComponent(nome)}`);
-                const dados = await resposta.json();
-
-                if (dados.numeros.length > 0) {
-                    resultadoDiv.innerHTML = `
-                        <strong>${dados.participante}</strong> comprou os números:<br>
-                        ${dados.numeros.join(", ")}
-                    `;
-                } else {
-                    resultadoDiv.innerHTML = "Nenhum número encontrado.";
-                }
-            } catch (error) {
-                resultadoDiv.innerHTML = "Erro ao buscar números.";
-            }
+          container.appendChild(botao);
         });
+      } catch (erro) {
+        console.error("Erro ao carregar números:", erro);
+      }
+    }
 
-        carregarNumeros();
-    </script>
+    async function selecionarNumero(numero) {
+      const confirmacao = confirm(`Confirmar compra do número ${numero} para ${participante}?`);
+      if (!confirmacao) return;
+
+      const resposta = await fetch('/comprar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numero, participante })
+      });
+
+      const resultado = await resposta.json();
+      alert(resultado.mensagem);
+      carregarNumeros(); // atualiza os botões
+    }
+
+    function logout() {
+      localStorage.removeItem('participante');
+      window.location.href = "/login";
+    }
+
+    // 🔍 Buscar números por nome
+    document.getElementById("campoBusca").addEventListener("input", async function () {
+      const nome = this.value.trim();
+      const resultadoDiv = document.getElementById("resultadoBusca");
+
+      if (nome.length < 3) {
+        resultadoDiv.innerHTML = "";
+        return;
+      }
+
+      try {
+        const resposta = await fetch(`/meus-numeros/${encodeURIComponent(nome)}`);
+        const dados = await resposta.json();
+
+        if (dados.numeros.length > 0) {
+          resultadoDiv.innerHTML = `
+            <strong>${dados.participante}</strong> comprou os números:<br>
+            ${dados.numeros.join(", ")}
+          `;
+        } else {
+          resultadoDiv.innerHTML = "Nenhum número encontrado.";
+        }
+      } catch (error) {
+        resultadoDiv.innerHTML = "Erro ao buscar números.";
+      }
+    });
+
+    carregarNumeros();
+  </script>
 </body>
 </html>
+
