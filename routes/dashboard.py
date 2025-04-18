@@ -32,39 +32,36 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante IS NULL")
     numeros_disponiveis = cursor.fetchone()[0]
 
-    # Top participantes
+    # Top participantes (4 números comprados)
     cursor.execute('''
         SELECT P.Nome, COUNT(*) AS Quantidade
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
         GROUP BY P.Nome
+        HAVING COUNT(*) = 4
         ORDER BY Quantidade DESC
-        OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
     ''')
-    top_raw = cursor.fetchall()
-    top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
+    top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in cursor.fetchall()]
 
-    # Participantes que já pagaram pelo menos 1 número
+    # Participantes com pagamento confirmado
     cursor.execute('''
-        SELECT 
-            P.Nome,
-            MAX(NR.DataCompra) AS UltimaCompra,
-            COUNT(*) AS TotalPagos
+        SELECT P.Nome, MAX(NR.DataCompra), COUNT(*) AS TotalPagos
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
         WHERE NR.Pago = 1
         GROUP BY P.Nome
-        ORDER BY P.Nome
+        ORDER BY MAX(NR.DataCompra) DESC
     ''')
-    participantes_pagantes_raw = cursor.fetchall()
-    participantes_pagantes = [
-        {
+    pagamentos_confirmados = cursor.fetchall()
+    lista_pagamentos = []
+    for nome, ultima_compra, total_pagos in pagamentos_confirmados:
+        porcentagem = int((total_pagos / 4) * 100)
+        lista_pagamentos.append({
             "nome": nome,
-            "ultima_compra": ultima_compra.strftime('%d/%m/%Y') if ultima_compra else '—',
-            "total_pagos": total_pagos
-        }
-        for nome, ultima_compra, total_pagos in participantes_pagantes_raw
-    ]
+            "data": ultima_compra.strftime("%d/%m/%Y") if ultima_compra else "-",
+            "total": total_pagos,
+            "porcentagem": porcentagem
+        })
 
     return render_template(
         'dashboard.html',
@@ -72,5 +69,5 @@ def dashboard():
         numeros_comprados=numeros_comprados,
         numeros_disponiveis=numeros_disponiveis,
         top_participantes=top_participantes,
-        participantes_pagantes=participantes_pagantes
+        lista_pagamentos=lista_pagamentos
     )

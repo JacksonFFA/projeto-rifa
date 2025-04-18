@@ -52,7 +52,7 @@
     table {
       margin: 0 auto;
       border-collapse: collapse;
-      width: 80%;
+      width: 90%;
     }
     th, td {
       padding: 10px;
@@ -138,11 +138,11 @@
       {% for p in participantes_pagantes %}
       <tr>
         <td>{{ p.nome }}</td>
-        <td>{{ p.ultima_compra }}</td>
+        <td>{{ p.ultima_compra or '---' }}</td>
         <td>{{ p.total_pagos }}</td>
         <td>
           <div class="barra-energia">
-            <span style="width: {{ (p.total_pagos / 4) * 100 }}%;"></span>
+            <span style="width: {{ ((p.total_pagos / 4.0) * 100)|round(0) }}%;"></span>
           </div>
         </td>
       </tr>
