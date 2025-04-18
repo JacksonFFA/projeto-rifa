@@ -27,7 +27,7 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante IS NULL")
     numeros_disponiveis = cursor.fetchone()[0]
 
-    # Participantes com 4 números (concluídos)
+    # Participantes com 4 números comprados (completaram)
     cursor.execute('''
         SELECT P.Nome, COUNT(*) AS Quantidade
         FROM NumerosRifa NR
@@ -48,8 +48,13 @@ def dashboard():
         GROUP BY P.Nome
     ''')
     pagantes_raw = cursor.fetchall()
+
     participantes_pagantes = [
-        {"nome": nome, "ultima_compra": data.strftime('%d/%m/%Y'), "total_pagos": total}
+        {
+            "nome": nome,
+            "ultima_compra": data.strftime('%d/%m/%Y') if data else "—",
+            "total_pagos": total
+        }
         for nome, data, total in pagantes_raw
     ]
 
@@ -59,5 +64,5 @@ def dashboard():
         numeros_comprados=numeros_comprados,
         numeros_disponiveis=numeros_disponiveis,
         top_participantes=top_participantes,
-        participantes_pagantes=participantes_pagantes  # 👈 necessário para a nova tabela!
+        participantes_pagantes=participantes_pagantes
     )
