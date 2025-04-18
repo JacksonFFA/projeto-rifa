@@ -150,17 +150,8 @@
     </table>
   </div>
 
-  <div class="top-participantes">
-    <h2>📅 Participantes com todas as compras concluídas</h2>
-    <ul>
-      {% for participante in top_participantes %}
-        {% if participante.quantidade == 4 %}
-          <li>{{ participante.nome }} - 4 números comprados</li>
-        {% endif %}
-      {% endfor %}
-    </ul>
-  </div>
 
+  
   <script>
     const ctx = document.getElementById('pizzaChart');
     new Chart(ctx, {
