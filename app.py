@@ -4,20 +4,19 @@ import pymssql
 import bcrypt
 import os
 from dotenv import load_dotenv
-from routes.dashboard import dashboard_bp  # ✅ Import do blueprint
+from routes.dashboard import dashboard_bp  # Importa blueprint corretamente
 
 # Carrega variáveis do .env
 load_dotenv()
 
-# Cria o app Flask antes de registrar o blueprint
-app = Flask(__name__, static_folder='static')
+# Inicializa app
+app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
-# ✅ Agora sim pode registrar blueprint
+# Registra blueprint da dashboard
 app.register_blueprint(dashboard_bp)
 
-
-# Conexão com SQL Server - Azure usando variáveis de ambiente
+# Conexão com SQL Server usando variáveis de ambiente
 conn = pymssql.connect(
     server=os.getenv('DB_SERVER'),
     user=os.getenv('DB_USER'),
@@ -32,15 +31,14 @@ def home():
 @app.route('/numeros')
 def listar_numeros():
     cursor = conn.cursor()
-    query = """
+    cursor.execute("""
         SELECT
             Numero,
             ISNULL(P.Nome, '') AS NomeParticipante
         FROM NumerosRifa NR
         LEFT JOIN Participantes P ON NR.IdParticipante = P.Id
         ORDER BY Numero
-    """
-    cursor.execute(query)
+    """)
     resultados = cursor.fetchall()
     numeros = [{"numero": numero, "participante": participante} for numero, participante in resultados]
     return jsonify(numeros)
@@ -67,6 +65,7 @@ def comprar_numero():
         return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
     id_participante = row[0]
+
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s", (id_participante,))
     qtd_numeros = cursor.fetchone()[0]
     if qtd_numeros >= 4:
@@ -78,7 +77,7 @@ def comprar_numero():
         return jsonify({"mensagem": f"Número {numero} já foi comprado!", "success": False}), 400
 
     cursor.execute("UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
-        (id_participante, numero))
+                   (id_participante, numero))
     conn.commit()
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
@@ -105,7 +104,7 @@ def registrar():
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
         cursor.execute("INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
-                    (next_id, nome, senha_hash))
+                       (next_id, nome, senha_hash))
         conn.commit()
 
         return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!", "success": True})
@@ -138,7 +137,7 @@ def login():
 
     except Exception as e:
         print("❌ Erro no login:", e)
-    return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
+        return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
 
 @app.route('/login')
 def pagina_login():
@@ -163,7 +162,6 @@ def ver_numeros_participante(nome_participante):
         ORDER BY NR.Numero
     """, (nome_participante,))
     resultados = cursor.fetchall()
-
     numeros = [row[0] for row in resultados]
     return jsonify({"participante": nome_participante, "numeros": numeros})
 
