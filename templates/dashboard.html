@@ -1,9 +1,11 @@
+<!-- Novo dashboard.html com gráfico de pizza + tabela de status e lista de participantes -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Administrativa</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -39,6 +41,27 @@
       font-size: 24px;
       font-weight: bold;
       color: #007bff;
+    }
+    .grafico {
+      background-color: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin: 0 auto 30px auto;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
     }
     .top-participantes {
       background-color: white;
@@ -81,13 +104,48 @@
     </div>
   </div>
 
+  <div class="grafico">
+    <h2>Proporção de Números Comprados vs Disponíveis</h2>
+    <canvas id="pizzaChart"></canvas>
+    <table>
+      <tr><th>Status</th><th>Quantidade</th><th>Porcentagem</th></tr>
+      <tr><td>Comprados</td><td>{{ numeros_comprados }}</td><td>{{ (numeros_comprados / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td></tr>
+      <tr><td>Disponíveis</td><td>{{ numeros_disponiveis }}</td><td>{{ (numeros_disponiveis / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td></tr>
+    </table>
+  </div>
+
   <div class="top-participantes">
-    <h2>🏅 Top 5 Participantes</h2>
+    <h2>📅 Participantes com todas as compras concluídas</h2>
     <ul>
       {% for participante in top_participantes %}
-        <li>{{ participante.nome }} - {{ participante.quantidade }} número(s)</li>
+        {% if participante.quantidade == 4 %}
+          <li>{{ participante.nome }} - 4 números comprados</li>
+        {% endif %}
       {% endfor %}
     </ul>
   </div>
+
+  <script>
+    const ctx = document.getElementById('pizzaChart');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Comprados', 'Disponíveis'],
+        datasets: [{
+          data: [{{ numeros_comprados }}, {{ numeros_disponiveis }}],
+          backgroundColor: ['#007bff', '#cccccc'],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
