@@ -27,7 +27,7 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante IS NULL")
     numeros_disponiveis = cursor.fetchone()[0]
 
-    # Participantes com 4 números comprados
+    # Participantes com 4 números (concluídos)
     cursor.execute('''
         SELECT P.Nome, COUNT(*) AS Quantidade
         FROM NumerosRifa NR
@@ -39,22 +39,18 @@ def dashboard():
     top_raw = cursor.fetchall()
     top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
 
-    # Participantes com pagamentos confirmados
+    # Participantes com números pagos
     cursor.execute('''
-        SELECT P.Nome, MAX(NR.DataCompra) AS UltimaCompra, COUNT(*) AS TotalPagos
+        SELECT P.Nome, MAX(NR.DataCompra), COUNT(*) AS TotalPagos
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
         WHERE NR.Pago = 1
         GROUP BY P.Nome
-        ORDER BY UltimaCompra DESC
     ''')
-    pagos_raw = cursor.fetchall()
+    pagantes_raw = cursor.fetchall()
     participantes_pagantes = [
-        {
-            "nome": nome,
-            "ultima_compra": ultima.strftime('%d/%m/%Y %H:%M') if ultima else "",
-            "total_pagos": total
-        } for nome, ultima, total in pagos_raw
+        {"nome": nome, "ultima_compra": data.strftime('%d/%m/%Y'), "total_pagos": total}
+        for nome, data, total in pagantes_raw
     ]
 
     return render_template(
@@ -63,5 +59,5 @@ def dashboard():
         numeros_comprados=numeros_comprados,
         numeros_disponiveis=numeros_disponiveis,
         top_participantes=top_participantes,
-        participantes_pagantes=participantes_pagantes  # ✅ AGORA ENVIAMOS A LISTA
+        participantes_pagantes=participantes_pagantes  # 👈 necessário para a nova tabela!
     )
