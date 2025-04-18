@@ -42,13 +42,35 @@ def dashboard():
         OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
     ''')
     top_raw = cursor.fetchall()
-
     top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
+
+    # Participantes que já pagaram pelo menos 1 número
+    cursor.execute('''
+        SELECT 
+            P.Nome,
+            MAX(NR.DataCompra) AS UltimaCompra,
+            COUNT(*) AS TotalPagos
+        FROM NumerosRifa NR
+        INNER JOIN Participantes P ON NR.IdParticipante = P.Id
+        WHERE NR.Pago = 1
+        GROUP BY P.Nome
+        ORDER BY P.Nome
+    ''')
+    participantes_pagantes_raw = cursor.fetchall()
+    participantes_pagantes = [
+        {
+            "nome": nome,
+            "ultima_compra": ultima_compra.strftime('%d/%m/%Y') if ultima_compra else '—',
+            "total_pagos": total_pagos
+        }
+        for nome, ultima_compra, total_pagos in participantes_pagantes_raw
+    ]
 
     return render_template(
         'dashboard.html',
         total_participantes=total_participantes,
         numeros_comprados=numeros_comprados,
         numeros_disponiveis=numeros_disponiveis,
-        top_participantes=top_participantes
+        top_participantes=top_participantes,
+        participantes_pagantes=participantes_pagantes
     )
