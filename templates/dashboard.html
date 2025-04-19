@@ -1,6 +1,5 @@
 from pathlib import Path
 
-# HTML corrigido com ajustes de largura no desktop e remoção de código Python
 html_corrigido = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -50,9 +49,13 @@ html_corrigido = """
       border-radius: 15px;
       padding: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 80vw;
-      max-width: 700px;
+      width: 100%;
+      max-width: 400px;
       margin: 0 auto 30px auto;
+    }
+    canvas#pizzaChart {
+      max-width: 100%;
+      height: auto;
     }
     table {
       margin: 0 auto;
@@ -73,7 +76,6 @@ html_corrigido = """
       padding: 25px;
       border-radius: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 90vw;
       max-width: 1000px;
       margin: 30px auto;
     }
@@ -200,8 +202,7 @@ html_corrigido = """
 </html>
 """
 
-# Salvar o arquivo corrigido
-caminho = Path("/mnt/data/dashboard_corrigido.html")
+caminho = Path("/mnt/data/dashboard.html")
 caminho.write_text(html_corrigido, encoding="utf-8")
 
 caminho.name
