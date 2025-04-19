@@ -7,15 +7,15 @@ load_dotenv()
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
-conn = pymssql.connect(
-    server=os.getenv('DB_SERVER'),
-    user=os.getenv('DB_USER'),
-    password=os.getenv('DB_PASSWORD'),
-    database=os.getenv('DB_NAME')
-)
-
 @dashboard_bp.route('/dashboard')
 def dashboard():
+    # Criação da conexão dentro da função
+    conn = pymssql.connect(
+        server=os.getenv('DB_SERVER'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME')
+    )
     cursor = conn.cursor()
 
     cursor.execute("SELECT COUNT(*) FROM Participantes")
@@ -27,7 +27,7 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante IS NULL")
     numeros_disponiveis = cursor.fetchone()[0]
 
-    # Participantes com 4 números comprados (completaram)
+    # Participantes com 4 números (completaram)
     cursor.execute('''
         SELECT P.Nome, COUNT(*) AS Quantidade
         FROM NumerosRifa NR
@@ -39,28 +39,26 @@ def dashboard():
     top_raw = cursor.fetchall()
     top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
 
-    # Participantes com números pagos + cálculo financeiro
+    # Participantes com pagamentos confirmados (ordenado por data de pagamento desc)
     cursor.execute('''
-        SELECT P.Nome, MAX(NR.DataCompra), COUNT(*) AS TotalPagos
+        SELECT P.Nome, MAX(NR.DataPagamento), COUNT(*) AS TotalPagos
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
         WHERE NR.Pago = 1
         GROUP BY P.Nome
-        ORDER BY MAX(NR.DataCompra) DESC
+        ORDER BY MAX(NR.DataPagamento) DESC
     ''')
     pagantes_raw = cursor.fetchall()
-
     participantes_pagantes = [
         {
             "nome": nome,
             "ultima_compra": data.strftime('%d/%m/%Y') if data else "—",
-            "total_pagos": total,
-            "valor_pago": total * 25,
-            "porcentagem": int((total * 25) / 100 * 100)
+            "total_pagos": total
         }
         for nome, data, total in pagantes_raw
     ]
 
+    conn.close()  # Boa prática fechar a conexão
     return render_template(
         'dashboard.html',
         total_participantes=total_participantes,
