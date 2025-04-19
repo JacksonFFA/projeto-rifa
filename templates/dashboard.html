@@ -1,7 +1,7 @@
 from pathlib import Path
 
-# HTML atualizado com melhorias de responsividade para desktop
-html_atualizado = """
+# HTML corrigido com ajustes de largura no desktop e remoção de código Python
+html_corrigido = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -50,14 +50,14 @@ html_atualizado = """
       border-radius: 15px;
       padding: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 400px;
+      width: 80vw;
+      max-width: 700px;
       margin: 0 auto 30px auto;
     }
     table {
       margin: 0 auto;
       border-collapse: collapse;
-      width: 100%;
-      max-width: 1000px;
+      width: 95%;
     }
     th, td {
       padding: 10px;
@@ -73,9 +73,9 @@ html_atualizado = """
       padding: 25px;
       border-radius: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 90vw;
       max-width: 1000px;
       margin: 30px auto;
-      overflow-x: auto;
     }
     .pagamentos h2 {
       color: #333;
@@ -200,8 +200,8 @@ html_atualizado = """
 </html>
 """
 
-# Salvar o arquivo atualizado
-caminho = Path("/mnt/data/dashboard.html")
-caminho.write_text(html_atualizado, encoding="utf-8")
+# Salvar o arquivo corrigido
+caminho = Path("/mnt/data/dashboard_corrigido.html")
+caminho.write_text(html_corrigido, encoding="utf-8")
 
 caminho.name
