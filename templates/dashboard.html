@@ -1,6 +1,6 @@
 from pathlib import Path
 
-# HTML atualizado com as mudanças visuais para o gráfico e tabela
+# HTML atualizado com melhorias de responsividade para desktop
 html_atualizado = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -50,13 +50,14 @@ html_atualizado = """
       border-radius: 15px;
       padding: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 500px;
+      max-width: 400px;
       margin: 0 auto 30px auto;
     }
     table {
       margin: 0 auto;
       border-collapse: collapse;
-      width: 95%;
+      width: 100%;
+      max-width: 1000px;
     }
     th, td {
       padding: 10px;
@@ -74,6 +75,7 @@ html_atualizado = """
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       max-width: 1000px;
       margin: 30px auto;
+      overflow-x: auto;
     }
     .pagamentos h2 {
       color: #333;
