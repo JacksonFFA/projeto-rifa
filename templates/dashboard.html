@@ -1,5 +1,4 @@
-<!-- ... [Cabeçalho e estilo permanecem iguais] ... -->
-
+<!-- Apenas o trecho da tabela atualizado, para foco -->
 <div class="pagamentos">
   <h2>💰 Participantes com Pagamentos Confirmados</h2>
   <table>
@@ -16,7 +15,7 @@
       <td>{{ p.nome }}</td>
       <td>{{ p.ultima_compra }}</td>
       <td>{{ p.total_pagos }}</td>
-      <td>{{ p.valor_pago }}</td> <!-- Agora já vem com 'R$xx,xx' do Python -->
+      <td>R$ {{ "%.2f"|format(p.valor_pago) }}</td>
       <td>{{ p.porcentagem }}%</td>
       <td>
         <div class="barra-energia">

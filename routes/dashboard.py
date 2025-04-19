@@ -26,7 +26,6 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante IS NULL")
     numeros_disponiveis = cursor.fetchone()[0]
 
-    # Participantes com 4 números (completaram)
     cursor.execute('''
         SELECT P.Nome, COUNT(*) AS Quantidade
         FROM NumerosRifa NR
@@ -38,7 +37,7 @@ def dashboard():
     top_raw = cursor.fetchall()
     top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
 
-    # Participantes com pagamentos confirmados (ordenado por data de pagamento desc)
+    # Pagamentos confirmados com valor e porcentagem
     cursor.execute('''
         SELECT P.Nome, MAX(NR.DataPagamento), COUNT(*) AS TotalPagos
         FROM NumerosRifa NR
@@ -48,14 +47,13 @@ def dashboard():
         ORDER BY MAX(NR.DataPagamento) DESC
     ''')
     pagantes_raw = cursor.fetchall()
-
     participantes_pagantes = [
         {
             "nome": nome,
             "ultima_compra": data.strftime('%d/%m/%Y') if data else "—",
             "total_pagos": total,
-            "valor_pago": f"R${total * 25:.2f}",
-            "porcentagem": int((total / 4) * 100)  # Cada participante pode pagar no máximo 4 números
+            "valor_pago": total * 25.0,  # Deixa o número puro pro Jinja formatar
+            "porcentagem": int((total / 4) * 100)  # Supondo 4 números totais
         }
         for nome, data, total in pagantes_raw
     ]
