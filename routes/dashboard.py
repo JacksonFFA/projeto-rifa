@@ -39,14 +39,14 @@ def dashboard():
     top_raw = cursor.fetchall()
     top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
 
-    # Participantes com números pagos (ordenado por total e data)
+    # Participantes com números pagos + cálculo financeiro
     cursor.execute('''
         SELECT P.Nome, MAX(NR.DataCompra), COUNT(*) AS TotalPagos
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
         WHERE NR.Pago = 1
         GROUP BY P.Nome
-        ORDER BY COUNT(*) DESC, MAX(NR.DataCompra) DESC
+        ORDER BY MAX(NR.DataCompra) DESC
     ''')
     pagantes_raw = cursor.fetchall()
 
@@ -54,7 +54,9 @@ def dashboard():
         {
             "nome": nome,
             "ultima_compra": data.strftime('%d/%m/%Y') if data else "—",
-            "total_pagos": total
+            "total_pagos": total,
+            "valor_pago": total * 25,
+            "porcentagem": int((total * 25) / 100 * 100)
         }
         for nome, data, total in pagantes_raw
     ]
