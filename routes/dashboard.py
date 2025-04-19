@@ -39,13 +39,14 @@ def dashboard():
     top_raw = cursor.fetchall()
     top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
 
-    # Participantes com números pagos
+    # Participantes com números pagos (ordenado por total e data)
     cursor.execute('''
         SELECT P.Nome, MAX(NR.DataCompra), COUNT(*) AS TotalPagos
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
         WHERE NR.Pago = 1
         GROUP BY P.Nome
+        ORDER BY COUNT(*) DESC, MAX(NR.DataCompra) DESC
     ''')
     pagantes_raw = cursor.fetchall()
 
