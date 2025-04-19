@@ -9,7 +9,6 @@ dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/dashboard')
 def dashboard():
-    # Criação da conexão dentro da função
     conn = pymssql.connect(
         server=os.getenv('DB_SERVER'),
         user=os.getenv('DB_USER'),
@@ -49,16 +48,19 @@ def dashboard():
         ORDER BY MAX(NR.DataPagamento) DESC
     ''')
     pagantes_raw = cursor.fetchall()
+
     participantes_pagantes = [
         {
             "nome": nome,
             "ultima_compra": data.strftime('%d/%m/%Y') if data else "—",
-            "total_pagos": total
+            "total_pagos": total,
+            "valor_pago": f"R${total * 25:.2f}",
+            "porcentagem": int((total / 4) * 100)  # Cada participante pode pagar no máximo 4 números
         }
         for nome, data, total in pagantes_raw
     ]
 
-    conn.close()  # Boa prática fechar a conexão
+    conn.close()
     return render_template(
         'dashboard.html',
         total_participantes=total_participantes,
