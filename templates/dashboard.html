@@ -1,3 +1,7 @@
+from pathlib import Path
+
+# HTML atualizado com as mudanças visuais para o gráfico e tabela
+html_atualizado = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -86,6 +90,14 @@
       height: 100%;
       background-color: #28a745;
     }
+    .status-comprado {
+      color: red;
+      font-weight: bold;
+    }
+    .status-disponivel {
+      color: green;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -110,16 +122,24 @@
     <h2>Proporção de Números Comprados vs Disponíveis</h2>
     <canvas id="pizzaChart"></canvas>
     <table>
-      <tr><th>Status</th><th>Quantidade</th><th>Porcentagem</th></tr>
       <tr>
-        <td>Comprados</td>
-        <td>{{ numeros_comprados }}</td>
-        <td>{{ (numeros_comprados / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td>
+        <th>Status</th>
+        <th>Quantidade</th>
+        <th>Porcentagem</th>
       </tr>
       <tr>
-        <td>Disponíveis</td>
-        <td>{{ numeros_disponiveis }}</td>
-        <td>{{ (numeros_disponiveis / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td>
+        <td class="status-comprado">Comprados</td>
+        <td class="status-comprado">{{ numeros_comprados }}</td>
+        <td class="status-comprado">
+          {{ (numeros_comprados / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%
+        </td>
+      </tr>
+      <tr>
+        <td class="status-disponivel">Disponíveis</td>
+        <td class="status-disponivel">{{ numeros_disponiveis }}</td>
+        <td class="status-disponivel">
+          {{ (numeros_disponiveis / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%
+        </td>
       </tr>
     </table>
   </div>
@@ -160,7 +180,7 @@
         labels: ['Comprados', 'Disponíveis'],
         datasets: [{
           data: [{{ numeros_comprados }}, {{ numeros_disponiveis }}],
-          backgroundColor: ['#007bff', '#cccccc'],
+          backgroundColor: ['#ff4d4d', '#28a745'],
           hoverOffset: 10
         }]
       },
@@ -176,3 +196,10 @@
   </script>
 </body>
 </html>
+"""
+
+# Salvar o arquivo atualizado
+caminho = Path("/mnt/data/dashboard.html")
+caminho.write_text(html_atualizado, encoding="utf-8")
+
+caminho.name
