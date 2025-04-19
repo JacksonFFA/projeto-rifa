@@ -37,7 +37,6 @@ def dashboard():
     top_raw = cursor.fetchall()
     top_participantes = [{"nome": nome, "quantidade": qtd} for nome, qtd in top_raw]
 
-    # Pagamentos confirmados com valor e porcentagem
     cursor.execute('''
         SELECT P.Nome, MAX(NR.DataPagamento), COUNT(*) AS TotalPagos
         FROM NumerosRifa NR
@@ -52,8 +51,8 @@ def dashboard():
             "nome": nome,
             "ultima_compra": data.strftime('%d/%m/%Y') if data else "—",
             "total_pagos": total,
-            "valor_pago": total * 25.0,  # Deixa o número puro pro Jinja formatar
-            "porcentagem": int((total / 4) * 100)  # Supondo 4 números totais
+            "valor_pago": f"{total * 25:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+            "porcentagem": int((total / 4) * 100)
         }
         for nome, data, total in pagantes_raw
     ]
