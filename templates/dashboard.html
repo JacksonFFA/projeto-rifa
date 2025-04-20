@@ -18,6 +18,24 @@
       display: flex;
       justify-content: center;
       min-height: 100vh;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark-mode {
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+
+    .dark-mode .card,
+    .dark-mode .grafico,
+    .dark-mode .pagamentos {
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+    }
+
+    .dark-mode th {
+      background-color: #333;
+      color: white;
     }
 
     .sidebar {
@@ -92,15 +110,6 @@
     .card p {
       font-size: 24px;
       font-weight: bold;
-      color: #007bff;
-    }
-
-    .card-red p {
-      color: red;
-    }
-
-    .card-green p {
-      color: green;
     }
 
     .grafico, .pagamentos {
@@ -141,11 +150,6 @@
       word-wrap: break-word;
     }
 
-    th {
-      background-color: #007bff;
-      color: white;
-    }
-
     td.nome-participante {
       max-width: 160px;
     }
@@ -176,9 +180,25 @@
       color: green;
       font-weight: bold;
     }
+
+    .toggle-dark-mode {
+      position: fixed;
+      top: 20px;
+      right: 30px;
+      z-index: 999;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
+  <button class="toggle-dark-mode" onclick="toggleDarkMode()">🌙 Alternar Tema</button>
+
   <div class="sidebar">
     <h2>📋 Menu</h2>
     <ul>
@@ -194,15 +214,15 @@
     <div class="cards">
       <div class="card">
         <h2>Total de Participantes</h2>
-        <p>{{ total_participantes }}</p>
+        <p style="color:#007bff">{{ total_participantes }}</p>
       </div>
-      <div class="card card-red">
+      <div class="card">
         <h2>Números Comprados</h2>
-        <p>{{ numeros_comprados }}</p>
+        <p style="color:red">{{ numeros_comprados }}</p>
       </div>
-      <div class="card card-green">
+      <div class="card">
         <h2>Números Disponíveis</h2>
-        <p>{{ numeros_disponiveis }}</p>
+        <p style="color:green">{{ numeros_disponiveis }}</p>
       </div>
     </div>
 
@@ -278,6 +298,10 @@
         }
       }
     });
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
   </script>
 </body>
 </html>
