@@ -1,3 +1,7 @@
+from pathlib import Path
+
+# HTML com centralização dos dados nas tabelas
+html_corrigido = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -118,6 +122,8 @@
       padding: 10px;
       border: 1px solid #ccc;
       font-size: 15px;
+      text-align: center;
+      vertical-align: middle;
     }
 
     th {
@@ -252,3 +258,10 @@
   </script>
 </body>
 </html>
+"""
+
+# Salvar o arquivo atualizado
+caminho_ajustado = Path("/mnt/data/dashboard_ajustado.html")
+caminho_ajustado.write_text(html_corrigido, encoding="utf-8")
+
+caminho_ajustado.name
