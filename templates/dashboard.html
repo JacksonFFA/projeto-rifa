@@ -1,7 +1,3 @@
-from pathlib import Path
-
-# HTML completo com suporte a dark mode e conteúdo visível
-dashboard_html = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -246,13 +242,7 @@ dashboard_html = """
         }
       }
     });
+
   </script>
 </body>
 </html>
-"""
-
-# Salvar o backup como arquivo HTML
-caminho = Path("/mnt/data/dashboard_dark_mode_backup.html")
-caminho.write_text(dashboard_html, encoding="utf-8")
-
-caminho.name
