@@ -1,3 +1,7 @@
+from pathlib import Path
+
+# HTML com as classes atualizadas para cor dos números nos cartões
+html_atualizado = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -95,6 +99,14 @@
       color: #007bff;
     }
 
+    .card-red p {
+      color: red;
+    }
+
+    .card-green p {
+      color: green;
+    }
+
     .grafico, .pagamentos {
       background-color: white;
       border-radius: 15px;
@@ -188,11 +200,11 @@
         <h2>Total de Participantes</h2>
         <p>{{ total_participantes }}</p>
       </div>
-      <div class="card">
+      <div class="card card-red">
         <h2>Números Comprados</h2>
         <p>{{ numeros_comprados }}</p>
       </div>
-      <div class="card">
+      <div class="card card-green">
         <h2>Números Disponíveis</h2>
         <p>{{ numeros_disponiveis }}</p>
       </div>
@@ -273,3 +285,9 @@
   </script>
 </body>
 </html>
+"""
+
+# Salvar o HTML em um arquivo
+caminho = Path("/mnt/data/dashboard_atualizado_cores_cartoes.html")
+caminho.write_text(html_atualizado, encoding="utf-8")
+caminho.name
