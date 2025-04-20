@@ -1,7 +1,3 @@
-from pathlib import Path
-
-# HTML com as classes atualizadas para cor dos números nos cartões
-html_atualizado = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -285,9 +281,3 @@ html_atualizado = """
   </script>
 </body>
 </html>
-"""
-
-# Salvar o HTML em um arquivo
-caminho = Path("/mnt/data/dashboard_atualizado_cores_cartoes.html")
-caminho.write_text(html_atualizado, encoding="utf-8")
-caminho.name
