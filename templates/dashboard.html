@@ -174,12 +174,105 @@
 <body>
   <button class="dark-toggle" onclick="toggleDarkMode()">🌙/☀️</button>
 
-  <!-- ... Conteúdo da sidebar e content será injetado no projeto ... -->
+  <div class="sidebar">
+    <h2>📋 Menu</h2>
+    <ul>
+      <li><a href="#visao-geral">📊 Visão Geral</a></li>
+      <li><a href="#grafico">📈 Gráfico</a></li>
+      <li><a href="#pagamentos">💰 Pagamentos</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <h1 id="visao-geral">Dashboard Administrativa</h1>
+
+    <div class="cards">
+      <div class="card">
+        <h2>Total de Participantes</h2>
+        <p>{{ total_participantes }}</p>
+      </div>
+      <div class="card card-red">
+        <h2>Números Comprados</h2>
+        <p>{{ numeros_comprados }}</p>
+      </div>
+      <div class="card card-green">
+        <h2>Números Disponíveis</h2>
+        <p>{{ numeros_disponiveis }}</p>
+      </div>
+    </div>
+
+    <div class="grafico" id="grafico">
+      <h2>Proporção de Números Comprados vs Disponíveis</h2>
+      <canvas id="pizzaChart"></canvas>
+      <table>
+        <tr><th>Status</th><th>Quantidade</th><th>Porcentagem</th></tr>
+        <tr>
+          <td class="status-comprado">Comprados</td>
+          <td class="status-comprado">{{ numeros_comprados }}</td>
+          <td class="status-comprado">{{ (numeros_comprados / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td>
+        </tr>
+        <tr>
+          <td class="status-disponivel">Disponíveis</td>
+          <td class="status-disponivel">{{ numeros_disponiveis }}</td>
+          <td class="status-disponivel">{{ (numeros_disponiveis / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="pagamentos" id="pagamentos">
+      <h2>💰 Participantes com Pagamentos Confirmados</h2>
+      <table>
+        <tr>
+          <th>Participante</th><th>Última Compra</th><th>Números Pagos</th>
+          <th>Valor Pago</th><th>Porcentagem</th><th>Progresso</th>
+        </tr>
+        {% for p in participantes_pagantes %}
+        <tr>
+          <td class="nome-participante">{{ p.nome }}</td>
+          <td>{{ p.ultima_compra }}</td>
+          <td>{{ p.total_pagos }}</td>
+          <td class="valor-pago">R$ {{ p.valor_pago }}</td>
+          <td>{{ p.porcentagem }}%</td>
+          <td>
+            <div class="barra-energia">
+              <span style="width: {{ p.porcentagem }}%;"></span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
 
   <script>
+    const ctx = document.getElementById('pizzaChart');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Comprados', 'Disponíveis'],
+        datasets: [{
+          data: [{{ numeros_comprados }}, {{ numeros_disponiveis }}],
+          backgroundColor: ['#ff4d4d', '#28a745'],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: document.body.classList.contains('dark-mode') ? '#fff' : '#333'
+            }
+          }
+        }
+      }
+    });
+
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('modo', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      location.reload(); // Forçar reload para reprocessar cores do gráfico
     }
 
     window.onload = () => {
