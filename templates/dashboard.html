@@ -6,7 +6,11 @@
   <title>Dashboard Administrativa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4f6f8;
@@ -34,6 +38,7 @@
       z-index: 9999;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+
     .sidebar {
       width: 220px;
       background-color: #007bff;
@@ -44,21 +49,35 @@
       left: 0;
       top: 0;
     }
-    .sidebar h2 { margin-bottom: 30px; font-size: 20px; }
-    .sidebar ul { list-style: none; }
-    .sidebar li { margin: 20px 0; }
+    .sidebar h2 {
+      margin-bottom: 30px;
+      font-size: 20px;
+    }
+    .sidebar ul {
+      list-style: none;
+    }
+    .sidebar li {
+      margin: 20px 0;
+    }
     .sidebar a {
       color: white;
       text-decoration: none;
       font-weight: bold;
       display: block;
     }
-    .sidebar a:hover { text-decoration: underline; }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+
     .content {
       margin-left: 240px;
       padding: 30px;
       width: calc(100% - 240px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
     h1 {
       color: #007bff;
       margin-bottom: 30px;
@@ -89,7 +108,9 @@
       margin-bottom: 10px;
       transition: color 0.3s ease;
     }
-    body.dark-mode .card h2 { color: #ffffff; }
+    body.dark-mode .card h2 {
+      color: #ffffff;
+    }
     .card p {
       font-size: 24px;
       font-weight: bold;
@@ -97,6 +118,7 @@
     }
     .card-red p { color: red; }
     .card-green p { color: green; }
+
     .grafico, .pagamentos {
       background-color: white;
       border-radius: 15px;
@@ -134,9 +156,13 @@
       text-align: center;
       word-wrap: break-word;
     }
-    th { background-color: #007bff; color: white; }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
     td.nome-participante { max-width: 160px; }
     td.valor-pago { max-width: 120px; }
+
     .barra-energia {
       height: 20px;
       background-color: #ccc;
@@ -226,9 +252,34 @@
   </div>
 
   <script>
+    const ctx = document.getElementById('pizzaChart');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Comprados', 'Disponíveis'],
+        datasets: [{
+          data: [{{ numeros_comprados }}, {{ numeros_disponiveis }}],
+          backgroundColor: ['#ff4d4d', '#28a745'],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: document.body.classList.contains('dark-mode') ? '#fff' : '#333'
+            }
+          }
+        }
+      }
+    });
+
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('modo', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      location.reload(); // Forçar reload para atualizar a cor do gráfico
     }
 
     window.onload = () => {
@@ -238,30 +289,6 @@
       } else {
         document.body.classList.remove('dark-mode');
       }
-
-      const ctx = document.getElementById('pizzaChart');
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['Comprados', 'Disponíveis'],
-          datasets: [{
-            data: [{{ numeros_comprados }}, {{ numeros_disponiveis }}],
-            backgroundColor: ['#ff4d4d', '#28a745'],
-            hoverOffset: 10
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000'
-              }
-            }
-          }
-        }
-      });
     };
   </script>
 </body>
