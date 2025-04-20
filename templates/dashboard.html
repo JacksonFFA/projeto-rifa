@@ -1,6 +1,9 @@
 from pathlib import Path
 
-# HTML com centralização dos dados nas tabelas
+# Caminho correto do arquivo dentro da estrutura do projeto Flask (pasta templates)
+caminho_dashboard = Path("/mnt/data/dashboard.html")
+
+# HTML atualizado com as correções de alinhamento e centralização
 html_corrigido = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -20,6 +23,7 @@ html_corrigido = """
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4f6f8;
       display: flex;
+      justify-content: center;
       min-height: 100vh;
     }
 
@@ -30,6 +34,8 @@ html_corrigido = """
       color: white;
       position: fixed;
       height: 100%;
+      left: 0;
+      top: 0;
     }
 
     .sidebar h2 {
@@ -59,7 +65,7 @@ html_corrigido = """
     .content {
       margin-left: 240px;
       padding: 30px;
-      width: 100%;
+      width: calc(100% - 240px);
     }
 
     h1 {
@@ -102,9 +108,9 @@ html_corrigido = """
       padding: 25px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       margin-bottom: 30px;
+      max-width: 800px;
       margin-left: auto;
       margin-right: auto;
-      max-width: 600px;
     }
 
     #pizzaChart {
@@ -116,6 +122,7 @@ html_corrigido = """
       margin: 0 auto;
       border-collapse: collapse;
       width: 100%;
+      table-layout: fixed;
     }
 
     th, td {
@@ -123,12 +130,20 @@ html_corrigido = """
       border: 1px solid #ccc;
       font-size: 15px;
       text-align: center;
-      vertical-align: middle;
+      word-wrap: break-word;
     }
 
     th {
       background-color: #007bff;
       color: white;
+    }
+
+    td.nome-participante {
+      max-width: 160px;
+    }
+
+    td.valor-pago {
+      max-width: 120px;
     }
 
     .barra-energia {
@@ -218,10 +233,10 @@ html_corrigido = """
         </tr>
         {% for p in participantes_pagantes %}
         <tr>
-          <td>{{ p.nome }}</td>
+          <td class="nome-participante">{{ p.nome }}</td>
           <td>{{ p.ultima_compra }}</td>
           <td>{{ p.total_pagos }}</td>
-          <td>R$ {{ p.valor_pago }}</td>
+          <td class="valor-pago">R$ {{ p.valor_pago }}</td>
           <td>{{ p.porcentagem }}%</td>
           <td>
             <div class="barra-energia">
@@ -258,3 +273,9 @@ html_corrigido = """
   </script>
 </body>
 </html>
+"""
+
+# Salva o HTML corrigido no caminho correto
+caminho_dashboard.write_text(html_corrigido, encoding="utf-8")
+
+caminho_dashboard.name
