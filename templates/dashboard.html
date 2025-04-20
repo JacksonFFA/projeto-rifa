@@ -1,7 +1,7 @@
 from pathlib import Path
 
-# Novo HTML com menu lateral fixo e conteúdo centralizado
-html_com_menu_lateral = """
+# HTML atualizado com gráfico centralizado, menor e sem mensagens erradas
+html_ajustado = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -102,6 +102,14 @@ html_com_menu_lateral = """
       padding: 25px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       margin-bottom: 30px;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 600px;
+    }
+
+    #pizzaChart {
+      max-width: 400px;
+      margin: 0 auto 20px auto;
     }
 
     table {
@@ -251,7 +259,7 @@ html_com_menu_lateral = """
 """
 
 # Salvar arquivo
-caminho_menu = Path("/mnt/data/dashboard_com_menu_lateral.html")
-caminho_menu.write_text(html_com_menu_lateral, encoding="utf-8")
+caminho_corrigido = Path("/mnt/data/dashboard_corrigido.html")
+caminho_corrigido.write_text(html_ajustado, encoding="utf-8")
 
-caminho_menu.name
+caminho_corrigido.name
