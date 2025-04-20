@@ -1,7 +1,3 @@
-from pathlib import Path
-
-# Atualizando o HTML com os títulos centralizados
-html_corrigido = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -277,10 +273,3 @@ html_corrigido = """
   </script>
 </body>
 </html>
-"""
-
-# Salvar
-caminho_final = Path("/mnt/data/dashboard.html")
-caminho_final.write_text(html_corrigido, encoding="utf-8")
-
-caminho_final.name
