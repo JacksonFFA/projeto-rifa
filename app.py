@@ -199,3 +199,12 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
+@app.route('/debug-vars')
+def debug_vars():
+    return jsonify({
+        "DB_SERVER": os.getenv('DB_SERVER'),
+        "DB_USER": os.getenv('DB_USER'),
+        "DB_PASSWORD": os.getenv('DB_PASSWORD'),
+        "DB_NAME": os.getenv('DB_NAME')
+    })
+
