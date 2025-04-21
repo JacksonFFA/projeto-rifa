@@ -3,11 +3,34 @@ from flask_cors import CORS
 import pymssql
 import bcrypt
 import os
+import time
 from dotenv import load_dotenv
 from routes.dashboard import dashboard_bp  # Importa blueprint corretamente
 
 # Carrega variáveis do .env
 load_dotenv()
+
+# Função com reconexão automática
+def conectar(retentativas=3, espera=2):
+    for tentativa in range(1, retentativas + 1):
+        try:
+            print(f"🔄 Tentando conexão ao banco... tentativa {tentativa}")
+            conn = pymssql.connect(
+                server=os.getenv('DB_SERVER'),
+                user=os.getenv('DB_USER'),
+                password=os.getenv('DB_PASSWORD'),
+                database=os.getenv('DB_NAME')
+            )
+            print("✅ Conexão com o banco estabelecida com sucesso!")
+            return conn
+        except pymssql.InterfaceError as e:
+            print(f"⚠️ Erro na tentativa {tentativa}: {e}")
+            if tentativa < retentativas:
+                print(f"⏳ Aguardando {espera} segundos antes de tentar novamente...")
+                time.sleep(espera)
+            else:
+                print("❌ Todas as tentativas de conexão falharam.")
+                raise
 
 # Inicializa app
 app = Flask(__name__, static_folder='static', template_folder='templates')
@@ -16,13 +39,8 @@ CORS(app)
 # Registra blueprint da dashboard
 app.register_blueprint(dashboard_bp)
 
-# Conexão com SQL Server usando variáveis de ambiente
-conn = pymssql.connect(
-    server=os.getenv('DB_SERVER'),
-    user=os.getenv('DB_USER'),
-    password=os.getenv('DB_PASSWORD'),
-    database=os.getenv('DB_NAME')
-)
+# Conexão com SQL Server
+conn = conectar()
 
 @app.route('/')
 def home():
