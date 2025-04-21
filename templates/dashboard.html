@@ -6,11 +6,7 @@
   <title>Dashboard Administrativa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4f6f8;
@@ -48,25 +44,16 @@
       left: 0;
       top: 0;
     }
-    .sidebar h2 {
-      margin-bottom: 30px;
-      font-size: 20px;
-    }
-    .sidebar ul {
-      list-style: none;
-    }
-    .sidebar li {
-      margin: 20px 0;
-    }
+    .sidebar h2 { margin-bottom: 30px; font-size: 20px; }
+    .sidebar ul { list-style: none; }
+    .sidebar li { margin: 20px 0; }
     .sidebar a {
       color: white;
       text-decoration: none;
       font-weight: bold;
       display: block;
     }
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
+    .sidebar a:hover { text-decoration: underline; }
     .content {
       margin-left: 240px;
       padding: 30px;
@@ -75,11 +62,7 @@
       flex-direction: column;
       align-items: center;
     }
-    h1 {
-      color: #007bff;
-      margin-bottom: 30px;
-      text-align: center;
-    }
+    h1 { color: #007bff; margin-bottom: 30px; text-align: center; }
     .cards {
       display: flex;
       flex-wrap: wrap;
@@ -92,7 +75,7 @@
       padding: 25px;
       border-radius: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 280px;
+      width: 260px;
       text-align: center;
       transition: all 0.3s ease;
     }
@@ -105,9 +88,7 @@
       margin-bottom: 10px;
       transition: color 0.3s ease;
     }
-    body.dark-mode .card h2 {
-      color: #ffffff;
-    }
+    body.dark-mode .card h2 { color: #ffffff; }
     .card p {
       font-size: 24px;
       font-weight: bold;
@@ -115,6 +96,7 @@
     }
     .card-red p { color: red; }
     .card-green p { color: green; }
+
     .grafico, .pagamentos {
       background-color: white;
       border-radius: 15px;
@@ -122,9 +104,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       margin-bottom: 30px;
       max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: center;
+      width: 100%;
       transition: background-color 0.3s;
     }
     body.dark-mode .grafico,
@@ -134,12 +114,24 @@
     .grafico h2, .pagamentos h2 {
       margin-top: 20px;
       margin-bottom: 20px;
+      text-align: center;
     }
+
     #pizzaChart {
-      max-width: 600px;
-      height: 400px;
+      max-width: 400px;
       margin: 0 auto 20px auto;
     }
+
+    .exportar-btn {
+      margin-bottom: 15px;
+      padding: 8px 16px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
     table {
       margin: 0 auto;
       border-collapse: collapse;
@@ -153,12 +145,10 @@
       text-align: center;
       word-wrap: break-word;
     }
-    th {
-      background-color: #007bff;
-      color: white;
-    }
+    th { background-color: #007bff; color: white; }
     td.nome-participante { max-width: 160px; }
     td.valor-pago { max-width: 120px; }
+
     .barra-energia {
       height: 20px;
       background-color: #ccc;
@@ -190,9 +180,18 @@
     <h1 id="visao-geral">Dashboard Administrativa</h1>
 
     <div class="cards">
-      <div class="card"><h2>Total de Participantes</h2><p>{{ total_participantes }}</p></div>
-      <div class="card card-red"><h2>Números Comprados</h2><p>{{ numeros_comprados }}</p></div>
-      <div class="card card-green"><h2>Números Disponíveis</h2><p>{{ numeros_disponiveis }}</p></div>
+      <div class="card">
+        <h2>Total de Participantes</h2>
+        <p>{{ total_participantes }}</p>
+      </div>
+      <div class="card card-red">
+        <h2>Números Comprados</h2>
+        <p>{{ numeros_comprados }}</p>
+      </div>
+      <div class="card card-green">
+        <h2>Números Disponíveis</h2>
+        <p>{{ numeros_disponiveis }}</p>
+      </div>
     </div>
 
     <div class="grafico" id="grafico">
@@ -210,6 +209,31 @@
           <td class="status-disponivel">{{ numeros_disponiveis }}</td>
           <td class="status-disponivel">{{ (numeros_disponiveis / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td>
         </tr>
+      </table>
+    </div>
+
+    <div class="pagamentos" id="pagamentos">
+      <h2>💰 Participantes com Pagamentos Confirmados</h2>
+      <button class="exportar-btn" onclick="exportarParaCSV()">📥 Exportar para CSV</button>
+      <table id="tabela-pagamentos">
+        <tr>
+          <th>Participante</th><th>Última Compra</th><th>Números Pagos</th>
+          <th>Valor Pago</th><th>Porcentagem</th><th>Progresso</th>
+        </tr>
+        {% for p in participantes_pagantes %}
+        <tr>
+          <td class="nome-participante">{{ p.nome }}</td>
+          <td>{{ p.ultima_compra }}</td>
+          <td>{{ p.total_pagos }}</td>
+          <td class="valor-pago">R$ {{ p.valor_pago }}</td>
+          <td>{{ p.porcentagem }}%</td>
+          <td>
+            <div class="barra-energia">
+              <span style="width: {{ p.porcentagem }}%;"></span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
       </table>
     </div>
   </div>
@@ -253,7 +277,22 @@
         document.body.classList.remove('dark-mode');
       }
     };
-    
+
+    function exportarParaCSV() {
+      const tabela = document.getElementById('tabela-pagamentos');
+      let csv = '';
+      for (let i = 0; i < tabela.rows.length; i++) {
+        const cols = tabela.rows[i].querySelectorAll('td, th');
+        const linha = [...cols].map(col => col.innerText).join(',');
+        csv += linha + '\\n';
+      }
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'participantes_pagantes.csv');
+      link.click();
+    }
   </script>
 </body>
 </html>
