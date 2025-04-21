@@ -6,11 +6,7 @@
   <title>Dashboard Administrativa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4f6f8;
@@ -25,81 +21,47 @@
       color: #e0e0e0;
     }
     .dark-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 30px;
-      font-size: 16px;
-      cursor: pointer;
-      z-index: 9999;
+      position: fixed; top: 20px; right: 20px;
+      background: #007bff; color: white; border: none;
+      padding: 10px 16px; border-radius: 30px;
+      font-size: 16px; cursor: pointer; z-index: 9999;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     .sidebar {
-      width: 220px;
-      background-color: #007bff;
-      padding: 30px 20px;
-      color: white;
-      position: fixed;
-      height: 100%;
-      left: 0;
-      top: 0;
+      width: 220px; background-color: #007bff; padding: 30px 20px;
+      color: white; position: fixed; height: 100%; left: 0; top: 0;
     }
-    .sidebar h2 {
-      margin-bottom: 30px;
-      font-size: 20px;
-    }
-    .sidebar ul {
-      list-style: none;
-    }
-    .sidebar li {
-      margin: 20px 0;
-    }
+    .sidebar h2 { margin-bottom: 30px; font-size: 20px; }
+    .sidebar ul { list-style: none; }
+    .sidebar li { margin: 20px 0; }
     .sidebar a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      display: block;
+      color: white; text-decoration: none;
+      font-weight: bold; display: block;
     }
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
+    .sidebar a:hover { text-decoration: underline; }
 
     .content {
-      margin-left: 240px;
-      padding: 30px;
+      margin-left: 240px; padding: 30px;
       width: calc(100% - 240px);
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       align-items: center;
     }
 
     h1 {
-      color: #007bff;
-      margin-bottom: 30px;
+      color: #007bff; margin-bottom: 30px;
       text-align: center;
     }
-
     .cards {
-      display: flex;
+      display: flex; flex-wrap: wrap;
       justify-content: center;
-      gap: 30px;
-      margin-bottom: 30px;
-      max-width: 800px;
-      flex-wrap: wrap;
+      gap: 20px; margin-bottom: 30px;
     }
-
     .card {
       background-color: white;
-      padding: 25px;
-      border-radius: 15px;
+      padding: 25px; border-radius: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 240px;
-      text-align: center;
+      width: 280px; text-align: center;
       transition: all 0.3s ease;
     }
     body.dark-mode .card {
@@ -107,13 +69,10 @@
       box-shadow: 0 4px 15px rgba(255,255,255,0.05);
     }
     .card h2 {
-      color: #333;
-      margin-bottom: 10px;
+      color: #333; margin-bottom: 10px;
       transition: color 0.3s ease;
     }
-    body.dark-mode .card h2 {
-      color: #ffffff;
-    }
+    body.dark-mode .card h2 { color: #ffffff; }
     .card p {
       font-size: 24px;
       font-weight: bold;
@@ -125,14 +84,10 @@
     .grafico, .pagamentos {
       background-color: white;
       border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       margin-bottom: 30px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: center;
-      transition: background-color 0.3s;
+      max-width: 800px; margin-left: auto; margin-right: auto;
+      text-align: center; transition: background-color 0.3s;
     }
     body.dark-mode .grafico,
     body.dark-mode .pagamentos {
@@ -146,6 +101,19 @@
       max-width: 400px;
       margin: 0 auto 20px auto;
     }
+
+    .filtro-container {
+      margin-bottom: 15px;
+    }
+
+    .filtro-container input {
+      padding: 8px;
+      width: 300px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
     table {
       margin: 0 auto;
       border-collapse: collapse;
@@ -165,16 +133,12 @@
     }
     td.nome-participante { max-width: 160px; }
     td.valor-pago { max-width: 120px; }
-
     .barra-energia {
-      height: 20px;
-      background-color: #ccc;
-      border-radius: 10px;
-      overflow: hidden;
+      height: 20px; background-color: #ccc;
+      border-radius: 10px; overflow: hidden;
     }
     .barra-energia span {
-      display: block;
-      height: 100%;
+      display: block; height: 100%;
       background-color: #28a745;
     }
     .status-comprado { color: red; font-weight: bold; }
@@ -214,42 +178,42 @@
     <div class="grafico" id="grafico">
       <h2>Proporção de Números Comprados vs Disponíveis</h2>
       <canvas id="pizzaChart"></canvas>
-      <table>
-        <tr><th>Status</th><th>Quantidade</th><th>Porcentagem</th></tr>
-        <tr>
-          <td class="status-comprado">Comprados</td>
-          <td class="status-comprado">{{ numeros_comprados }}</td>
-          <td class="status-comprado">{{ (numeros_comprados / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td>
-        </tr>
-        <tr>
-          <td class="status-disponivel">Disponíveis</td>
-          <td class="status-disponivel">{{ numeros_disponiveis }}</td>
-          <td class="status-disponivel">{{ (numeros_disponiveis / (numeros_comprados + numeros_disponiveis) * 100)|round(1) }}%</td>
-        </tr>
-      </table>
     </div>
 
     <div class="pagamentos" id="pagamentos">
       <h2>💰 Participantes com Pagamentos Confirmados</h2>
-      <table>
-        <tr>
-          <th>Participante</th><th>Última Compra</th><th>Números Pagos</th>
-          <th>Valor Pago</th><th>Porcentagem</th><th>Progresso</th>
-        </tr>
-        {% for p in participantes_pagantes %}
-        <tr>
-          <td class="nome-participante">{{ p.nome }}</td>
-          <td>{{ p.ultima_compra }}</td>
-          <td>{{ p.total_pagos }}</td>
-          <td class="valor-pago">R$ {{ p.valor_pago }}</td>
-          <td>{{ p.porcentagem }}%</td>
-          <td>
-            <div class="barra-energia">
-              <span style="width: {{ p.porcentagem }}%;"></span>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
+
+      <div class="filtro-container">
+        <input type="text" id="filtroParticipante" placeholder="🔍 Filtrar por nome..." onkeyup="filtrarTabela()" />
+      </div>
+
+      <table id="tabelaParticipantes">
+        <thead>
+          <tr>
+            <th>Participante</th>
+            <th>Última Compra</th>
+            <th>Números Pagos</th>
+            <th>Valor Pago</th>
+            <th>Porcentagem</th>
+            <th>Progresso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in participantes_pagantes %}
+          <tr>
+            <td class="nome-participante">{{ p.nome }}</td>
+            <td>{{ p.ultima_compra }}</td>
+            <td>{{ p.total_pagos }}</td>
+            <td class="valor-pago">R$ {{ p.valor_pago }}</td>
+            <td>{{ p.porcentagem }}%</td>
+            <td>
+              <div class="barra-energia">
+                <span style="width: {{ p.porcentagem }}%;"></span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
       </table>
     </div>
   </div>
@@ -293,6 +257,16 @@
         document.body.classList.remove('dark-mode');
       }
     };
+
+    function filtrarTabela() {
+      const filtro = document.getElementById("filtroParticipante").value.toLowerCase();
+      const linhas = document.querySelectorAll("#tabelaParticipantes tbody tr");
+
+      linhas.forEach((linha) => {
+        const nome = linha.querySelector("td").textContent.toLowerCase();
+        linha.style.display = nome.includes(filtro) ? "" : "none";
+      });
+    }
   </script>
 </body>
 </html>
