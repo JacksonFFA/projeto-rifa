@@ -5,10 +5,11 @@ import bcrypt
 import os
 import time
 from dotenv import load_dotenv
-from routes.dashboard import dashboard_bp  # Importa blueprint corretamente
+from routes.dashboard import dashboard_bp
 
-# Carrega variáveis do .env
-load_dotenv()
+# Carrega variáveis do .env local se existir
+if os.path.exists('.env'):
+    load_dotenv()
 
 # Função com reconexão automática
 def conectar(retentativas=3, espera=2):
@@ -23,23 +24,23 @@ def conectar(retentativas=3, espera=2):
             )
             print("✅ Conexão com o banco estabelecida com sucesso!")
             return conn
-        except pymssql.InterfaceError as e:
+        except Exception as e:
             print(f"⚠️ Erro na tentativa {tentativa}: {e}")
             if tentativa < retentativas:
                 print(f"⏳ Aguardando {espera} segundos antes de tentar novamente...")
                 time.sleep(espera)
             else:
                 print("❌ Todas as tentativas de conexão falharam.")
-                raise
+                return None
 
-# Inicializa app
+# Inicializa app Flask
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
-# Registra blueprint da dashboard
+# Registra blueprint
 app.register_blueprint(dashboard_bp)
 
-# Conexão com SQL Server
+# Conexão com banco
 conn = conectar()
 
 @app.route('/')
@@ -48,6 +49,8 @@ def home():
 
 @app.route('/numeros')
 def listar_numeros():
+    if conn is None:
+        return jsonify({"erro": "Sem conexão com o banco"}), 500
     cursor = conn.cursor()
     cursor.execute("""
         SELECT
@@ -67,6 +70,9 @@ def front():
 
 @app.route('/comprar', methods=['POST'])
 def comprar_numero():
+    if conn is None:
+        return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
+
     dados = request.get_json()
     numero = dados.get('numero')
     nome_participante = dados.get('participante')
@@ -95,12 +101,14 @@ def comprar_numero():
         return jsonify({"mensagem": f"Número {numero} já foi comprado!", "success": False}), 400
 
     cursor.execute("UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
-                   (id_participante, numero))
+                (id_participante, numero))
     conn.commit()
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
+    if conn is None:
+        return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
     try:
         dados = request.get_json()
         nome = dados.get('nome')
@@ -122,7 +130,7 @@ def registrar():
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
         cursor.execute("INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
-                       (next_id, nome, senha_hash))
+                    (next_id, nome, senha_hash))
         conn.commit()
 
         return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!", "success": True})
@@ -133,6 +141,8 @@ def registrar():
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    if conn is None:
+        return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
     try:
         dados = request.get_json()
         nome = dados.get('nome')
@@ -171,6 +181,8 @@ def pagina_meus_numeros():
 
 @app.route('/meus-numeros/<nome_participante>')
 def ver_numeros_participante(nome_participante):
+    if conn is None:
+        return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
     cursor = conn.cursor()
     cursor.execute("""
         SELECT NR.Numero
