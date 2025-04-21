@@ -122,8 +122,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       margin-bottom: 30px;
       max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+      width: 100%;
       text-align: center;
       transition: background-color 0.3s;
     }
@@ -137,21 +136,22 @@
     }
     .exportar-btn {
       margin-bottom: 15px;
+      margin-top: 10px;
       padding: 8px 16px;
       background-color: #28a745;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      float: left;
     }
-    .search-box {
-      margin-bottom: 15px;
-    }
-    .search-box input {
+    #searchInput {
       padding: 8px;
-      width: 300px;
-      border-radius: 5px;
+      margin: 15px 0;
+      width: 100%;
+      max-width: 300px;
       border: 1px solid #ccc;
+      border-radius: 8px;
     }
     #pizzaChart {
       max-width: 400px;
@@ -223,7 +223,7 @@
 
     <div class="grafico" id="grafico">
       <h2>Proporção de Números Comprados vs Disponíveis</h2>
-      <canvas id="pizzaChart" style="height: 300px !important;"></canvas>
+      <canvas id="pizzaChart"></canvas>
       <table>
         <tr><th>Status</th><th>Quantidade</th><th>Porcentagem</th></tr>
         <tr>
@@ -241,9 +241,7 @@
 
     <div class="pagamentos" id="pagamentos">
       <h2>💰 Participantes com Pagamentos Confirmados</h2>
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 Buscar participante..." onkeyup="filtrarParticipantes()" />
-      </div>
+      <input type="text" id="searchInput" onkeyup="filtrarTabela()" placeholder="🔍 Buscar participante...">
       <button class="exportar-btn" onclick="exportarParaCSV()">📥 Exportar para CSV</button>
       <table id="tabela-pagamentos">
         <tr>
@@ -269,8 +267,6 @@
   </div>
 
   <script>
-    const modoEscuro = localStorage.getItem('modo') === 'dark';
-
     const ctx = document.getElementById('pizzaChart');
     new Chart(ctx, {
       type: 'pie',
@@ -288,7 +284,7 @@
           legend: {
             position: 'bottom',
             labels: {
-              color: modoEscuro ? '#fff' : '#333'
+              color: document.body.classList.contains('dark-mode') ? '#fff' : '#333'
             }
           }
         }
@@ -326,13 +322,18 @@
       link.click();
     }
 
-    function filtrarParticipantes() {
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      const linhas = document.querySelectorAll("#tabela-pagamentos tbody tr");
-      linhas.forEach(linha => {
-        const nome = linha.querySelector("td").innerText.toLowerCase();
-        linha.style.display = nome.includes(input) ? "" : "none";
-      });
+    function filtrarTabela() {
+      const input = document.getElementById("searchInput");
+      const filtro = input.value.toLowerCase();
+      const tabela = document.getElementById("tabela-pagamentos");
+      const linhas = tabela.getElementsByTagName("tr");
+      for (let i = 1; i < linhas.length; i++) {
+        const celula = linhas[i].getElementsByTagName("td")[0];
+        if (celula) {
+          const texto = celula.textContent || celula.innerText;
+          linhas[i].style.display = texto.toLowerCase().indexOf(filtro) > -1 ? "" : "none";
+        }
+      }
     }
   </script>
 </body>
