@@ -48,25 +48,16 @@
       left: 0;
       top: 0;
     }
-    .sidebar h2 {
-      margin-bottom: 30px;
-      font-size: 20px;
-    }
-    .sidebar ul {
-      list-style: none;
-    }
-    .sidebar li {
-      margin: 20px 0;
-    }
+    .sidebar h2 { margin-bottom: 30px; font-size: 20px; }
+    .sidebar ul { list-style: none; }
+    .sidebar li { margin: 20px 0; }
     .sidebar a {
       color: white;
       text-decoration: none;
       font-weight: bold;
       display: block;
     }
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
+    .sidebar a:hover { text-decoration: underline; }
     .content {
       margin-left: 240px;
       padding: 30px;
@@ -105,9 +96,7 @@
       margin-bottom: 10px;
       transition: color 0.3s ease;
     }
-    body.dark-mode .card h2 {
-      color: #ffffff;
-    }
+    body.dark-mode .card h2 { color: #ffffff; }
     .card p {
       font-size: 24px;
       font-weight: bold;
@@ -122,8 +111,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       margin-bottom: 30px;
       max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+      width: 100%;
       text-align: center;
       transition: background-color 0.3s;
     }
@@ -134,23 +122,6 @@
     .grafico h2, .pagamentos h2 {
       margin-top: 20px;
       margin-bottom: 20px;
-    }
-    .exportar-btn {
-      margin-bottom: 15px;
-      padding: 8px 16px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #busca-participante {
-      margin-bottom: 15px;
-      padding: 10px;
-      width: 60%;
-      text-align: center;
-      border-radius: 8px;
-      border: 1px solid #ccc;
     }
     #pizzaChart {
       max-width: 400px;
@@ -192,6 +163,7 @@
 </head>
 <body class="dark-mode">
   <button class="dark-toggle" onclick="toggleDarkMode()">🌙/☀️</button>
+
   <div class="sidebar">
     <h2>📋 Menu</h2>
     <ul>
@@ -200,8 +172,10 @@
       <li><a href="#pagamentos">💰 Pagamentos</a></li>
     </ul>
   </div>
+
   <div class="content">
     <h1 id="visao-geral">Dashboard Administrativa</h1>
+
     <div class="cards">
       <div class="card">
         <h2>Total de Participantes</h2>
@@ -216,6 +190,7 @@
         <p>{{ numeros_disponiveis }}</p>
       </div>
     </div>
+
     <div class="grafico" id="grafico">
       <h2>Proporção de Números Comprados vs Disponíveis</h2>
       <canvas id="pizzaChart"></canvas>
@@ -233,61 +208,9 @@
         </tr>
       </table>
     </div>
-    <div class="pagamentos" id="pagamentos">
-      <h2>💰 Participantes com Pagamentos Confirmados</h2>
-      <input type="text" id="busca-participante" placeholder="🔍 Buscar participante..." />
-      <button class="exportar-btn" onclick="exportarParaCSV()">📥 Exportar para CSV</button>
-      <table id="tabela-pagamentos">
-        <thead>
-          <tr>
-            <th>Participante</th><th>Última Compra</th><th>Números Pagos</th>
-            <th>Valor Pago</th><th>Porcentagem</th><th>Progresso</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for p in participantes_pagantes %}
-        <tr>
-          <td class="nome-participante">{{ p.nome }}</td>
-          <td>{{ p.ultima_compra }}</td>
-          <td>{{ p.total_pagos }}</td>
-          <td class="valor-pago">R$ {{ p.valor_pago }}</td>
-          <td>{{ p.porcentagem }}%</td>
-          <td>
-            <div class="barra-energia">
-              <span style="width: {{ p.porcentagem }}%;"></span>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
   </div>
-  <script>
-    const ctx = document.getElementById('pizzaChart');
-    const chart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Comprados', 'Disponíveis'],
-        datasets: [{
-          data: [{{ numeros_comprados }}, {{ numeros_disponiveis }}],
-          backgroundColor: ['#ff4d4d', '#28a745'],
-          hoverOffset: 10
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: getComputedStyle(document.body).color
-            }
-          }
-        }
-      }
-    });
 
+  <script>
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('modo', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
@@ -303,29 +226,28 @@
       }
     };
 
-    function exportarParaCSV() {
-      const tabela = document.getElementById('tabela-pagamentos');
-      let csv = '';
-      const linhas = tabela.querySelectorAll('tr');
-      linhas.forEach(row => {
-        const cols = row.querySelectorAll('td, th');
-        const linha = [...cols].map(col => col.innerText).join(',');
-        csv += linha + '\n';
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.setAttribute('href', URL.createObjectURL(blob));
-      link.setAttribute('download', 'participantes_pagantes.csv');
-      link.click();
-    }
-
-    document.getElementById('busca-participante').addEventListener('input', function () {
-      const busca = this.value.toLowerCase();
-      const linhas = document.querySelectorAll('#tabela-pagamentos tbody tr');
-      linhas.forEach(linha => {
-        const nome = linha.querySelector('.nome-participante')?.innerText.toLowerCase() || '';
-        linha.style.display = nome.includes(busca) ? '' : 'none';
-      });
+    const ctx = document.getElementById('pizzaChart');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Comprados', 'Disponíveis'],
+        datasets: [{
+          data: [{{ numeros_comprados }}, {{ numeros_disponiveis }}],
+          backgroundColor: ['#ff4d4d', '#28a745'],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: document.body.classList.contains('dark-mode') ? '#fff' : '#000'
+            }
+          }
+        }
+      }
     });
   </script>
 </body>
