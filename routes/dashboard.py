@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template 
 import pymssql
 import os
 from dotenv import load_dotenv
@@ -46,13 +46,15 @@ def dashboard():
         ORDER BY MAX(NR.DataPagamento) DESC
     ''')
     pagantes_raw = cursor.fetchall()
+    print("\n\ud83d\udcca DEBUG: participantes_pagantes =>", pagantes_raw)
+
     participantes_pagantes = [
         {
             "nome": nome,
             "ultima_compra": data.strftime('%d/%m/%Y') if data else "—",
             "total_pagos": total,
             "valor_pago": f"{total * 25:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
-            "porcentagem": int((total / 4) * 100)
+            "porcentagem": min(int((total / 4) * 100), 100)
         }
         for nome, data, total in pagantes_raw
     ]

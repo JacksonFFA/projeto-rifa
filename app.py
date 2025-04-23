@@ -38,6 +38,7 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
 # Registra blueprint
+dashboard_bp.template_folder = 'templates'
 app.register_blueprint(dashboard_bp)
 
 # Conexão com banco
@@ -142,29 +143,40 @@ def registrar():
 @app.route('/api/login', methods=['POST'])
 def login():
     if conn is None:
+        print("🚫 Sem conexão com o banco")
         return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
     try:
+        print("🔐 Iniciando login")
         dados = request.get_json()
+        print("📦 Dados recebidos:", dados)
+
         nome = dados.get('nome')
         senha = dados.get('senha')
 
         if not nome or not senha:
+            print("⚠️ Nome ou senha vazios")
             return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
         cursor = conn.cursor()
         cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = %s", (nome,))
         resultado = cursor.fetchone()
+        print("🔎 Resultado da query:", resultado)
+
         if not resultado:
             return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
         senha_hash = resultado[0]
+        print("🔐 Hash recebido:", senha_hash)
+
         if bcrypt.checkpw(senha.encode('utf-8'), senha_hash.encode('utf-8')):
+            print("✅ Login realizado com sucesso")
             return jsonify({"mensagem": "Login realizado com sucesso!", "success": True, "nome": nome})
         else:
+            print("❌ Senha incorreta")
             return jsonify({"mensagem": "Senha incorreta.", "success": False}), 401
 
     except Exception as e:
-        print("❌ Erro no login:", e)
+        print("❌ ERRO GERAL NO LOGIN:", e)
         return jsonify({"mensagem": "Erro interno no servidor.", "success": False}), 500
 
 @app.route('/login')
@@ -195,10 +207,6 @@ def ver_numeros_participante(nome_participante):
     numeros = [row[0] for row in resultados]
     return jsonify({"participante": nome_participante, "numeros": numeros})
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
-
 @app.route('/debug-vars')
 def debug_vars():
     return jsonify({
@@ -208,3 +216,5 @@ def debug_vars():
         "DB_NAME": os.getenv('DB_NAME')
     })
 
+if __name__ == '__main__':
+    app.run(debug=True)

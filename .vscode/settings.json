@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/566fb2f4-cbec-492a-ad5b-73fc63c8e22d/resourceGroups/RifaRG/providers/Microsoft.Web/sites/rifa-amigos-do-cantao-app",
+    "appService.deploySubpath": "."
+}
