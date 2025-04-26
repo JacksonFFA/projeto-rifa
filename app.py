@@ -11,6 +11,14 @@ from routes.dashboard import dashboard_bp
 if os.path.exists('.env'):
     load_dotenv()
 
+# Inicializa app Flask
+app = Flask(__name__, static_folder='static', template_folder='templates')
+CORS(app)
+
+# Registra blueprint
+dashboard_bp.template_folder = 'templates'
+app.register_blueprint(dashboard_bp)
+
 # Função com reconexão automática
 def conectar(retentativas=3, espera=2):
     for tentativa in range(1, retentativas + 1):
@@ -33,14 +41,6 @@ def conectar(retentativas=3, espera=2):
                 print("❌ Todas as tentativas de conexão falharam.")
                 return None
 
-# Inicializa app Flask
-app = Flask(__name__, static_folder='static', template_folder='templates')
-CORS(app)
-
-# Registra blueprint
-dashboard_bp.template_folder = 'templates'
-app.register_blueprint(dashboard_bp)
-
 # Conexão com banco
 conn = conectar()
 
@@ -54,9 +54,7 @@ def listar_numeros():
         return jsonify({"erro": "Sem conexão com o banco"}), 500
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT
-            Numero,
-            ISNULL(P.Nome, '') AS NomeParticipante
+        SELECT Numero, ISNULL(P.Nome, '') AS NomeParticipante
         FROM NumerosRifa NR
         LEFT JOIN Participantes P ON NR.IdParticipante = P.Id
         ORDER BY Numero
@@ -102,7 +100,7 @@ def comprar_numero():
         return jsonify({"mensagem": f"Número {numero} já foi comprado!", "success": False}), 400
 
     cursor.execute("UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
-                (id_participante, numero))
+                   (id_participante, numero))
     conn.commit()
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
@@ -131,7 +129,7 @@ def registrar():
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
         cursor.execute("INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
-                    (next_id, nome, senha_hash))
+                       (next_id, nome, senha_hash))
         conn.commit()
 
         return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!", "success": True})
@@ -143,36 +141,27 @@ def registrar():
 @app.route('/api/login', methods=['POST'])
 def login():
     if conn is None:
-        print("🚫 Sem conexão com o banco")
         return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
     try:
-        print("🔐 Iniciando login")
         dados = request.get_json()
-        print("📦 Dados recebidos:", dados)
-
         nome = dados.get('nome')
         senha = dados.get('senha')
 
         if not nome or not senha:
-            print("⚠️ Nome ou senha vazios")
             return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
         cursor = conn.cursor()
         cursor.execute("SELECT SenhaHash FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome,))
         resultado = cursor.fetchone()
-        print("🔎 Resultado da query:", resultado)
 
         if not resultado:
             return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
         senha_hash = resultado[0]
-        print("🔐 Hash recebido:", senha_hash)
 
         if bcrypt.checkpw(senha.encode('utf-8'), senha_hash.encode('utf-8')):
-            print("✅ Login realizado com sucesso")
             return jsonify({"mensagem": "Login realizado com sucesso!", "success": True, "nome": nome})
         else:
-            print("❌ Senha incorreta")
             return jsonify({"mensagem": "Senha incorreta.", "success": False}), 401
 
     except Exception as e:
@@ -216,5 +205,6 @@ def debug_vars():
         "DB_NAME": os.getenv('DB_NAME')
     })
 
+# Rode o app se chamado diretamente
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, debug=True)
