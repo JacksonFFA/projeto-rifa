@@ -158,7 +158,7 @@ def login():
             return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
         cursor = conn.cursor()
-        cursor.execute("SELECT SenhaHash FROM Participantes WHERE Nome = %s", (nome,))
+        cursor.execute("SELECT SenhaHash FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome,))
         resultado = cursor.fetchone()
         print("🔎 Resultado da query:", resultado)
 
@@ -217,4 +217,4 @@ def debug_vars():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
