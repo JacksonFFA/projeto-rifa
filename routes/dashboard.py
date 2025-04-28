@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template 
-import pymssql
+from flask import Blueprint, render_template
+import pyodbc
 import os
 from dotenv import load_dotenv
 
@@ -7,14 +7,22 @@ load_dotenv()
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
+def conectar():
+    conn = pyodbc.connect(
+        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+        f"SERVER={os.getenv('DB_SERVER')};"
+        f"DATABASE={os.getenv('DB_NAME')};"
+        f"UID={os.getenv('DB_USER')};"
+        f"PWD={os.getenv('DB_PASSWORD')};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+    return conn
+
 @dashboard_bp.route('/dashboard')
 def dashboard():
-    conn = pymssql.connect(
-        server=os.getenv('DB_SERVER'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
-        database=os.getenv('DB_NAME')
-    )
+    conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("SELECT COUNT(*) FROM Participantes")
@@ -46,7 +54,6 @@ def dashboard():
         ORDER BY MAX(NR.DataPagamento) DESC
     ''')
     pagantes_raw = cursor.fetchall()
-    print("\n\ud83d\udcca DEBUG: participantes_pagantes =>", pagantes_raw)
 
     participantes_pagantes = [
         {
@@ -60,6 +67,7 @@ def dashboard():
     ]
 
     conn.close()
+
     return render_template(
         'dashboard.html',
         total_participantes=total_participantes,

@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-import pymssql
+import pyodbc
 import bcrypt
 import os
 import time
 from dotenv import load_dotenv
 from routes.dashboard import dashboard_bp
 
-# Carrega variáveis do .env local se existir
+# Carrega variáveis do .env local, se existir
 if os.path.exists('.env'):
     load_dotenv()
 
@@ -15,33 +15,37 @@ if os.path.exists('.env'):
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
-# Registra blueprint
+# Registra blueprint do dashboard
 dashboard_bp.template_folder = 'templates'
 app.register_blueprint(dashboard_bp)
 
-# Função com reconexão automática
-def conectar(retentativas=3, espera=2):
-    for tentativa in range(1, retentativas + 1):
+# Função para conectar ao banco usando pyodbc
+def conectar(retries=3, delay=2):
+    for tentativa in range(1, retries + 1):
         try:
             print(f"🔄 Tentando conexão ao banco... tentativa {tentativa}")
-            conn = pymssql.connect(
-                server=os.getenv('DB_SERVER'),
-                user=os.getenv('DB_USER'),
-                password=os.getenv('DB_PASSWORD'),
-                database=os.getenv('DB_NAME')
+            conn = pyodbc.connect(
+                f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+                f"SERVER={os.getenv('DB_SERVER')};"
+                f"DATABASE={os.getenv('DB_NAME')};"
+                f"UID={os.getenv('DB_USER')};"
+                f"PWD={os.getenv('DB_PASSWORD')};"
+                "Encrypt=yes;"
+                "TrustServerCertificate=yes;"
+                "Connection Timeout=30;"
             )
             print("✅ Conexão com o banco estabelecida com sucesso!")
             return conn
         except Exception as e:
             print(f"⚠️ Erro na tentativa {tentativa}: {e}")
-            if tentativa < retentativas:
-                print(f"⏳ Aguardando {espera} segundos antes de tentar novamente...")
-                time.sleep(espera)
+            if tentativa < retries:
+                print(f"⏳ Aguardando {delay} segundos para nova tentativa...")
+                time.sleep(delay)
             else:
                 print("❌ Todas as tentativas de conexão falharam.")
                 return None
 
-# Conexão com banco
+# Conecta ao banco de dados
 conn = conectar()
 
 @app.route('/')
@@ -60,7 +64,7 @@ def listar_numeros():
         ORDER BY Numero
     """)
     resultados = cursor.fetchall()
-    numeros = [{"numero": numero, "participante": participante} for numero, participante in resultados]
+    numeros = [{"numero": row[0], "participante": row[1]} for row in resultados]
     return jsonify(numeros)
 
 @app.route('/front')
@@ -82,32 +86,36 @@ def comprar_numero():
     nome_participante = nome_participante.strip()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome_participante,))
+    cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", (nome_participante,))
     row = cursor.fetchone()
     if not row:
         return jsonify({"mensagem": "Participante não encontrado.", "success": False}), 404
 
     id_participante = row[0]
 
-    cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = %s", (id_participante,))
+    cursor.execute("SELECT COUNT(*) FROM NumerosRifa WHERE IdParticipante = ?", (id_participante,))
     qtd_numeros = cursor.fetchone()[0]
     if qtd_numeros >= 4:
         return jsonify({"mensagem": "Você já comprou 4 números. Limite atingido!", "success": False}), 403
 
-    cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = %s", (numero,))
+    cursor.execute("SELECT IdParticipante FROM NumerosRifa WHERE Numero = ?", (numero,))
     checar = cursor.fetchone()
     if checar and checar[0] is not None:
         return jsonify({"mensagem": f"Número {numero} já foi comprado!", "success": False}), 400
 
-    cursor.execute("UPDATE NumerosRifa SET IdParticipante = %s, DataCompra = GETDATE() WHERE Numero = %s",
-                   (id_participante, numero))
+    cursor.execute(
+        "UPDATE NumerosRifa SET IdParticipante = ?, DataCompra = GETDATE() WHERE Numero = ?",
+        (id_participante, numero)
+    )
     conn.commit()
+
     return jsonify({"mensagem": f"Número {numero} comprado com sucesso por {nome_participante}!", "success": True})
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
     if conn is None:
         return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
+
     try:
         dados = request.get_json()
         nome = dados.get('nome')
@@ -119,7 +127,7 @@ def registrar():
         nome = nome.strip()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome,))
+        cursor.execute("SELECT Id FROM Participantes WHERE LOWER(Nome) = LOWER(?)", (nome,))
         if cursor.fetchone():
             return jsonify({"mensagem": "Este nome já está em uso. Escolha outro.", "success": False}), 409
 
@@ -128,8 +136,10 @@ def registrar():
 
         senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        cursor.execute("INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (%s, %s, %s)",
-                       (next_id, nome, senha_hash))
+        cursor.execute(
+            "INSERT INTO Participantes (Id, Nome, SenhaHash) VALUES (?, ?, ?)",
+            (next_id, nome, senha_hash)
+        )
         conn.commit()
 
         return jsonify({"mensagem": f"Cadastro realizado com sucesso para {nome}!", "success": True})
@@ -142,6 +152,7 @@ def registrar():
 def login():
     if conn is None:
         return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
+
     try:
         dados = request.get_json()
         nome = dados.get('nome')
@@ -151,7 +162,7 @@ def login():
             return jsonify({"mensagem": "Preencha nome e senha.", "success": False}), 400
 
         cursor = conn.cursor()
-        cursor.execute("SELECT SenhaHash FROM Participantes WHERE LOWER(Nome) = LOWER(%s)", (nome,))
+        cursor.execute("SELECT SenhaHash FROM Participantes WHERE LOWER(Nome) = LOWER(?)", (nome,))
         resultado = cursor.fetchone()
 
         if not resultado:
@@ -184,12 +195,13 @@ def pagina_meus_numeros():
 def ver_numeros_participante(nome_participante):
     if conn is None:
         return jsonify({"mensagem": "Sem conexão com o banco", "success": False}), 500
+
     cursor = conn.cursor()
     cursor.execute("""
         SELECT NR.Numero
         FROM NumerosRifa NR
         INNER JOIN Participantes P ON NR.IdParticipante = P.Id
-        WHERE LOWER(P.Nome) = LOWER(%s)
+        WHERE LOWER(P.Nome) = LOWER(?)
         ORDER BY NR.Numero
     """, (nome_participante,))
     resultados = cursor.fetchall()
@@ -205,6 +217,6 @@ def debug_vars():
         "DB_NAME": os.getenv('DB_NAME')
     })
 
-# Rode o app se chamado diretamente
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, debug=True)
